@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { DashboardPage } from '@/modules/dashboard';
 import { FinancePage } from '@/modules/finance';
 import { CalendarPage } from '@/modules/big-calendar';
 import { EmailPage } from '@/modules/email';
