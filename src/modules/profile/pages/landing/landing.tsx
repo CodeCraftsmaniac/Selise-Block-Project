@@ -107,14 +107,54 @@ export function LandingPage() {
       </div>
 
       {/* Footer */}
-      <div className="border-t py-8 text-center text-gray-500 text-sm">
-        <p>
-          {t('BUILT_WITH')}{' '}
-          <a href="https://seliseblocks.com" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
-            SELISE Blocks
-          </a>
-        </p>
-      </div>
+      <footer className="border-t bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('PLATFORM')}</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>
+                  <Link to="/browse" className="hover:text-blue-600 transition-colors">
+                    {t('BROWSE_PROFILES')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/signup" className="hover:text-blue-600 transition-colors">
+                    {t('CREATE_PROFILE')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('RESOURCES')}</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>
+                  <a href="https://docs.seliseblocks.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
+                    {t('DOCUMENTATION')}
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/SELISEdigitalplatforms/blocks-construct-react" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
+                    {t('CONSTRUCT_REPO')}
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('BUILT_WITH')}</h3>
+              <p className="text-sm text-gray-600">
+                {t('POWERED_BY')}{' '}
+                <a href="https://seliseblocks.com" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                  SELISE Blocks
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="border-t pt-6 text-center text-sm text-gray-500">
+            <p> {t('COPYRIGHT')} — {t('UNIVERSAL_PROFILE_ENGINE')}</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
