@@ -71,3 +71,19 @@ export const DELETE_CUSTOM_SECTION_MUTATION = `
     }
   }
 `;
+
+/**
+ * Bulk reorder mutation for custom sections.
+ * Note: SELISE Data Gateway does not natively support bulk updates.
+ * The frontend iterates over reordered items and calls UPDATE_CUSTOM_SECTION_MUTATION
+ * for each changed item. This mutation is reserved for future gateway bulk support.
+ */
+export const REORDER_CUSTOM_SECTIONS_MUTATION = `
+  mutation ReorderUserCustomSections($items: [UserCustomSectionUpdateInput!]!) {
+    reorderUserCustomSections(items: $items) {
+      itemId
+      totalImpactedData
+      acknowledged
+    }
+  }
+`;
