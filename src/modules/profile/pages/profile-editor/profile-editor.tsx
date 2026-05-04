@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/state/store/auth';
 import {
   useGetProfileByUserId,
@@ -135,6 +135,57 @@ export function ProfileEditorPage() {
       });
     }
   };
+
+  // Auto-save with debounce
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef<string>('');
+
+  const performAutoSave = useCallback(() => {
+    if (!existingProfile || !userId) return;
+    const payload = {
+      display_name: form.display_name || '',
+      username: form.username || '',
+      headline: form.headline || '',
+      bio_text: form.bio_text || '',
+      profile_image_url: form.profile_image_url || '',
+      header_image_url: form.header_image_url || '',
+      social_links: form.social_links || [],
+      theme_preference: form.theme_preference || 'minimal',
+    };
+    const snapshot = JSON.stringify(payload);
+    if (snapshot === lastSavedRef.current) return;
+
+    setSaveStatus('saving');
+    updateProfile.mutate(
+      {
+        filter: existingProfile.ItemId,
+        input: payload,
+      },
+      {
+        onSuccess: () => {
+          setSaveStatus('saved');
+          lastSavedRef.current = snapshot;
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        },
+        onError: () => {
+          setSaveStatus('idle');
+        },
+      }
+    );
+  }, [existingProfile, userId, form, updateProfile]);
+
+  useEffect(() => {
+    if (!existingProfile) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSaveStatus('idle');
+    debounceRef.current = setTimeout(() => {
+      performAutoSave();
+    }, 1500);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [form, existingProfile, performAutoSave]);
 
   if (isLoading) {
     return (
@@ -322,7 +373,7 @@ export function ProfileEditorPage() {
         </div>
 
         {/* Save Button */}
-        <div className="pt-4">
+        <div className="pt-4 flex items-center gap-4">
           <Button
             onClick={handleSave}
             disabled={updateProfile.isPending || createProfile.isPending}
@@ -330,6 +381,12 @@ export function ProfileEditorPage() {
           >
             {updateProfile.isPending || createProfile.isPending ? t('SAVING') : t('SAVE_PROFILE')}
           </Button>
+          {saveStatus === 'saving' && (
+            <span className="text-sm text-blue-600">{t('AUTO_SAVING')}</span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="text-sm text-green-600">{t('AUTO_SAVED')}</span>
+          )}
         </div>
       </div>
     </div>
