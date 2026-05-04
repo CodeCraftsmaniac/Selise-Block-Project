@@ -1,11 +1,13 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
-import { Globe, Palette, Share2, Sparkles, User, ArrowRight } from 'lucide-react';
+import { Globe, Palette, Share2, Sparkles, User, ArrowRight, ExternalLink, Loader2 } from 'lucide-react';
+import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 
 export function LandingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { data: profiles, isLoading } = usePublicPublishedProfiles();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -104,6 +106,59 @@ export function LandingPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Recent Profiles */}
+      <div className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('RECENT_PROFILES')}</h2>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        ) : profiles?.getUserProfiles?.items && profiles.getUserProfiles.items.length > 0 ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {profiles.getUserProfiles.items.slice(0, 6).map((profile) => (
+              <Link
+                key={profile.ItemId}
+                to={`/u/${profile.username}`}
+                className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden group"
+              >
+                <div className="h-24 bg-gray-200 relative overflow-hidden">
+                  {profile.header_image_url ? (
+                    <img src={profile.header_image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-400" />
+                  )}
+                </div>
+                <div className="p-4 relative">
+                  <div className="w-14 h-14 rounded-full bg-gray-200 border-2 border-white absolute -top-7 left-4 overflow-hidden flex items-center justify-center">
+                    {profile.profile_image_url ? (
+                      <img src={profile.profile_image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-500">
+                        {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-8">
+                    <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {profile.display_name}
+                    </h3>
+                    <p className="text-sm text-gray-500">@{profile.username}</p>
+                    {profile.headline && (
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{profile.headline}</p>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            <User className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>{t('NO_PROFILES_YET')}</p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
