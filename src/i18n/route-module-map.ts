@@ -16,6 +16,7 @@ export const routeModuleMap: Record<string, string[]> = {
   '/dashboard/sections': ['common', 'profile', 'dashboard'],
   '/dashboard/preview': ['common', 'profile', 'dashboard'],
   '/u/:username': ['common', 'profile'],
+  '/browse': ['common', 'profile'],
   '/finance': ['common', 'finance'],
   '/identity-management': ['common', 'iam'],
   '/inventory': ['common', 'inventory'],

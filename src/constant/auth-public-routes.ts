@@ -13,4 +13,5 @@ export const publicRoutes = [
   '/sso/:provider/callback',
   '/oidc',
   '/u/:username',
+  '/browse',
 ];

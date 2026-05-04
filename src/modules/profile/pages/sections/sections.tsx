@@ -14,8 +14,100 @@ import { Textarea } from '@/components/ui-kit/textarea';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { Plus, Trash, Edit, GripVertical, Eye, EyeOff } from 'lucide-react';
 import { UserCustomSection } from '../../types/profile.types';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const SECTION_TYPES = ['Experience', 'Project', 'Skill', 'Education', 'Custom'];
+
+interface SortableSectionItemProps {
+  section: UserCustomSection;
+  onEdit: (section: UserCustomSection) => void;
+  onDelete: (id: string) => void;
+  onToggleVisibility: (section: UserCustomSection) => void;
+}
+
+function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility }: SortableSectionItemProps) {
+  const { t } = useTranslation();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.ItemId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-start gap-3 p-4 rounded-lg border ${
+        section.is_visible === false ? 'bg-gray-50 opacity-60' : 'bg-white'
+      }`}
+    >
+      <button
+        className="mt-1 text-gray-400 cursor-grab active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+            {section.section_type}
+          </span>
+          <h3 className="font-semibold">{section.section_title || section.section_type}</h3>
+        </div>
+        {section.section_content && (
+          <p className="text-sm text-gray-600 line-clamp-2">{section.section_content}</p>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onToggleVisibility(section)}
+          className="p-2 hover:bg-gray-100 rounded"
+          title={section.is_visible !== false ? t('HIDE') : t('SHOW')}
+        >
+          {section.is_visible !== false ? (
+            <Eye className="w-4 h-4 text-gray-500" />
+          ) : (
+            <EyeOff className="w-4 h-4 text-gray-400" />
+          )}
+        </button>
+        <button onClick={() => onEdit(section)} className="p-2 hover:bg-gray-100 rounded">
+          <Edit className="w-4 h-4 text-gray-500" />
+        </button>
+        <button onClick={() => onDelete(section.ItemId)} className="p-2 hover:bg-red-50 rounded">
+          <Trash className="w-4 h-4 text-red-500" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function SectionsPage() {
   const { t } = useTranslation();
@@ -23,12 +115,13 @@ export function SectionsPage() {
   const userId = user?.itemId || '';
 
   const { data, isLoading } = useGetSectionsByUserId(userId);
-  const sections = data?.getUserCustomSections?.items || [];
+  const apiSections = data?.getUserCustomSections?.items || [];
 
   const createSection = useCreateSection();
   const updateSection = useUpdateSection();
   const deleteSection = useDeleteSection();
 
+  const [items, setItems] = useState<UserCustomSection[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -39,12 +132,44 @@ export function SectionsPage() {
     is_visible: true,
   });
 
+  useEffect(() => {
+    const sorted = [...apiSections].sort((a, b) => (a.section_order || 0) - (b.section_order || 0));
+    setItems(sorted);
+  }, [apiSections]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = items.findIndex((item) => item.ItemId === active.id);
+    const newIndex = items.findIndex((item) => item.ItemId === over.id);
+    const newItems = arrayMove(items, oldIndex, newIndex);
+    setItems(newItems);
+
+    // Update section_order for all items
+    newItems.forEach((item, index) => {
+      if (item.section_order !== index) {
+        updateSection.mutate({
+          filter: item.ItemId,
+          input: { section_order: index },
+        });
+      }
+    });
+  };
+
   const resetForm = () => {
     setForm({
       section_type: 'Experience',
       section_title: '',
       section_content: '',
-      section_order: sections.length,
+      section_order: items.length,
       is_visible: true,
     });
     setIsAdding(false);
@@ -53,9 +178,9 @@ export function SectionsPage() {
 
   useEffect(() => {
     if (isAdding && !editingId) {
-      setForm((prev) => ({ ...prev, section_order: sections.length }));
+      setForm((prev) => ({ ...prev, section_order: items.length }));
     }
-  }, [isAdding, editingId, sections.length]);
+  }, [isAdding, editingId, items.length]);
 
   const handleEdit = (section: UserCustomSection) => {
     setForm({
@@ -108,10 +233,6 @@ export function SectionsPage() {
       input: { is_visible: !section.is_visible },
     });
   };
-
-  const sortedSections = [...sections].sort(
-    (a, b) => (a.section_order || 0) - (b.section_order || 0)
-  );
 
   if (isLoading) {
     return (
@@ -196,60 +317,33 @@ export function SectionsPage() {
       )}
 
       <div className="space-y-3">
-        {sortedSections.length === 0 && !isAdding && (
+        {items.length === 0 && !isAdding && (
           <div className="text-center py-12 text-gray-500">
             <p>{t('NO_SECTIONS_YET')}</p>
             <p className="text-sm mt-1">{t('ADD_FIRST_SECTION')}</p>
           </div>
         )}
 
-        {sortedSections.map((section) => (
-          <div
-            key={section.ItemId}
-            className={`flex items-start gap-3 p-4 rounded-lg border ${
-              section.is_visible === false ? 'bg-gray-50 opacity-60' : 'bg-white'
-            }`}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={items.map((item) => item.ItemId)}
+            strategy={verticalListSortingStrategy}
           >
-            <div className="mt-1 text-gray-400">
-              <GripVertical className="w-4 h-4" />
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                  {section.section_type}
-                </span>
-                <h3 className="font-semibold">{section.section_title || section.section_type}</h3>
-              </div>
-              {section.section_content && (
-                <p className="text-sm text-gray-600 line-clamp-2">{section.section_content}</p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleToggleVisibility(section)}
-                className="p-2 hover:bg-gray-100 rounded"
-                title={section.is_visible !== false ? t('HIDE') : t('SHOW')}
-              >
-                {section.is_visible !== false ? (
-                  <Eye className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <EyeOff className="w-4 h-4 text-gray-400" />
-                )}
-              </button>
-              <button onClick={() => handleEdit(section)} className="p-2 hover:bg-gray-100 rounded">
-                <Edit className="w-4 h-4 text-gray-500" />
-              </button>
-              <button
-                onClick={() => handleDelete(section.ItemId)}
-                className="p-2 hover:bg-red-50 rounded"
-              >
-                <Trash className="w-4 h-4 text-red-500" />
-              </button>
-            </div>
-          </div>
-        ))}
+            {items.map((section) => (
+              <SortableSectionItem
+                key={section.ItemId}
+                section={section}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleVisibility={handleToggleVisibility}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ import {
   SectionsPage,
   PreviewPage,
   LandingPage,
+  BrowsePage,
 } from '@/modules/profile';
 import { UsersTablePage } from '@/modules/iam';
 import { MainLayout } from '@/layout/main-layout/main-layout';
@@ -50,6 +51,7 @@ export const AppRoutes = () => {
             <Routes>
               {AuthRoutes}
               <Route path="/u/:username" element={<PublicProfilePage />} />
+              <Route path="/browse" element={<BrowsePage />} />
               <Route path="/" element={<LandingPage />} />
               <Route
                 element={
