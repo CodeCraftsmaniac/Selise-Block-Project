@@ -220,7 +220,10 @@ export function ProfileEditorPage() {
           <Input
             id="username"
             value={form.username || ''}
-            onChange={(e) => handleChange('username', e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+              handleChange('username', val);
+            }}
             placeholder={t('USERNAME_PLACEHOLDER')}
           />
           <p className="text-sm text-gray-500 mt-1">{t('USERNAME_HELP')}</p>
@@ -239,11 +242,19 @@ export function ProfileEditorPage() {
 
         {/* Bio */}
         <div>
-          <Label htmlFor="bio_text">{t('BIO')}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="bio_text">{t('BIO')}</Label>
+            <span className="text-xs text-gray-400">
+              {(form.bio_text || '').length} / 500
+            </span>
+          </div>
           <Textarea
             id="bio_text"
             value={form.bio_text || ''}
-            onChange={(e) => handleChange('bio_text', e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value.slice(0, 500);
+              handleChange('bio_text', val);
+            }}
             placeholder={t('BIO_PLACEHOLDER')}
             rows={5}
           />
