@@ -1,6 +1,6 @@
 {
-  "short_name": "Construct",
-  "name": "Blocks Construct",
+  "short_name": "Profile Engine",
+  "name": "Universal Profile Engine",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#15969B",
   "background_color": "#ffffff"
 }
