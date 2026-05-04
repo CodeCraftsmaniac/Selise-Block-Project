@@ -31,7 +31,12 @@ const createMenuItemWithChildren = (
 });
 
 export const menuItems: MenuItem[] = [
-  createMenuItem('dashboard', 'DASHBOARD', '/dashboard', 'LayoutDashboard'),
+  createMenuItemWithChildren('dashboard', 'DASHBOARD', '/dashboard', 'LayoutDashboard', [
+    createMenuItem('profile-editor', 'PROFILE_EDITOR', '/dashboard/profile', 'User'),
+    createMenuItem('appearance', 'APPEARANCE', '/dashboard/appearance', 'Palette'),
+    createMenuItem('sections', 'SECTIONS', '/dashboard/sections', 'Layers'),
+    createMenuItem('preview', 'PREVIEW', '/dashboard/preview', 'Eye'),
+  ]),
   createMenuItem('finance', 'FINANCE', '/finance', 'ChartNoAxesCombined', {
     roles: ['admin'],
   }),

@@ -15,7 +15,15 @@ import {
   EditInvoicePage,
 } from '@/modules/invoices';
 import { TaskManagerPage } from '@/modules/task-manager';
-import { ProfilePage } from '@/modules/profile';
+import {
+  ProfilePage,
+  PublicProfilePage,
+  ProfileEditorPage,
+  AppearancePage,
+  SectionsPage,
+  PreviewPage,
+  LandingPage,
+} from '@/modules/profile';
 import { UsersTablePage } from '@/modules/iam';
 import { MainLayout } from '@/layout/main-layout/main-layout';
 import { AuthRoutes } from './auth.route';
@@ -41,6 +49,8 @@ export const AppRoutes = () => {
           <SidebarProvider>
             <Routes>
               {AuthRoutes}
+              <Route path="/u/:username" element={<PublicProfilePage />} />
+              <Route path="/" element={<LandingPage />} />
               <Route
                 element={
                   <Guard>
@@ -48,7 +58,11 @@ export const AppRoutes = () => {
                   </Guard>
                 }
               >
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<Navigate to="/dashboard/profile" replace />} />
+                <Route path="/dashboard/profile" element={<ProfileEditorPage />} />
+                <Route path="/dashboard/appearance" element={<AppearancePage />} />
+                <Route path="/dashboard/sections" element={<SectionsPage />} />
+                <Route path="/dashboard/preview" element={<PreviewPage />} />
                 <Route
                   path="/finance"
                   element={
@@ -103,7 +117,6 @@ export const AppRoutes = () => {
               </Route>
 
               {/* Redirects */}
-              <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/file-manager" element={<Navigate to="/file-manager/my-files" />} />
               <Route path="/my-files" element={<Navigate to="/file-manager/my-files" />} />
               <Route path="/shared-files" element={<Navigate to="/file-manager/shared-files" />} />

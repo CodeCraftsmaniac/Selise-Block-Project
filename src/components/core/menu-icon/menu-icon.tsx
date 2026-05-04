@@ -18,6 +18,9 @@ import {
   ReceiptText,
   Folder,
   MessageSquareText,
+  Palette,
+  Layers,
+  Eye,
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
@@ -75,6 +78,9 @@ const iconMap = {
   ReceiptText,
   Folder,
   MessageSquareText,
+  Palette,
+  Layers,
+  Eye,
 } as const;
 
 export type MenuIconName = keyof typeof iconMap;

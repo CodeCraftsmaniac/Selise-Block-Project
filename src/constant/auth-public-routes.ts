@@ -1,4 +1,5 @@
 export const publicRoutes = [
+  '/',
   '/login',
   '/signup',
   '/sso-signup',
@@ -11,4 +12,5 @@ export const publicRoutes = [
   '/verify-mfa',
   '/sso/:provider/callback',
   '/oidc',
+  '/u/:username',
 ];

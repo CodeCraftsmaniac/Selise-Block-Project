@@ -9,7 +9,13 @@
  *                                followed by route-specific module names
  */
 export const routeModuleMap: Record<string, string[]> = {
+  '/': ['common', 'landing'],
   '/dashboard': ['common', 'dashboard'],
+  '/dashboard/profile': ['common', 'profile', 'dashboard'],
+  '/dashboard/appearance': ['common', 'profile', 'dashboard'],
+  '/dashboard/sections': ['common', 'profile', 'dashboard'],
+  '/dashboard/preview': ['common', 'profile', 'dashboard'],
+  '/u/:username': ['common', 'profile'],
   '/finance': ['common', 'finance'],
   '/identity-management': ['common', 'iam'],
   '/inventory': ['common', 'inventory'],
