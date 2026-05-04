@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer } from 'lucide-react';
+import { ShareProfileModal } from '../../components/share-profile-modal/share-profile-modal';
 
 export function PreviewPage() {
   const { t } = useTranslation();
@@ -59,6 +60,10 @@ export function PreviewPage() {
                 <ExternalLink className="w-4 h-4 mr-2" />
                 {t('COPY_LINK')}
               </Button>
+              <ShareProfileModal
+                username={profile.username}
+                displayName={profile.display_name}
+              />
               <Button variant="outline" size="sm" onClick={handlePrintProfile}>
                 <Printer className="w-4 h-4 mr-2" />
                 {t('PRINT')}
