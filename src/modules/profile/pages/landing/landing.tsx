@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
-import { Globe, Palette, Share2, Sparkles, User, ArrowRight, ExternalLink, Loader2 } from 'lucide-react';
+import { Globe, Palette, Share2, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
 import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 
 export function LandingPage() {

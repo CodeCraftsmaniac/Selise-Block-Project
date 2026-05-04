@@ -41,7 +41,7 @@ export function ShareProfileModal({ username, displayName }: ShareProfileModalPr
 
   const shareLinks = {
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      `Check out my profile on Universal Profile Engine: ${publicUrl}`
+      `Check out ${displayName}'s profile on Universal Profile Engine: ${publicUrl}`
     )}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(publicUrl)}`,
