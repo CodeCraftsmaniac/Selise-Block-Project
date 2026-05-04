@@ -1,6 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from './i18n/language-context';
+import { ErrorBoundary } from './components/core';
 import './i18n/i18n';
 import { AppRoutes } from './routes/app-routes';
 
@@ -11,7 +12,9 @@ export default function App() {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider defaultLanguage="en-US" defaultModules={['common', 'auth']}>
-          <AppRoutes />
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
         </LanguageProvider>
       </QueryClientProvider>
     </BrowserRouter>
