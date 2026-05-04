@@ -15,6 +15,8 @@ export interface UserProfile {
   header_image_url?: string;
   social_links?: SocialLink[];
   theme_preference?: string;
+  accent_color?: string;
+  font_family?: string;
   is_published: boolean;
   created_at?: string;
   updated_at?: string;
@@ -51,6 +53,8 @@ export interface CreateProfileParams {
     header_image_url?: string;
     social_links?: SocialLink[];
     theme_preference?: string;
+    accent_color?: string;
+    font_family?: string;
     is_published?: boolean;
   };
 }
@@ -65,6 +69,8 @@ export interface UpdateProfileParams {
     header_image_url?: string;
     social_links?: SocialLink[];
     theme_preference?: string;
+    accent_color?: string;
+    font_family?: string;
     is_published?: boolean;
     username?: string;
   };

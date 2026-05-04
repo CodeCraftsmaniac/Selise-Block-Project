@@ -5,13 +5,30 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Label } from '@/components/ui-kit/label';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Check, Globe, User } from 'lucide-react';
+import { Check, Globe, User, Type } from 'lucide-react';
 
 const THEMES = [
   { id: 'minimal', label: 'Minimal', className: 'bg-white border-2 border-gray-200 text-gray-900' },
   { id: 'bold', label: 'Bold', className: 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' },
   { id: 'dark', label: 'Dark', className: 'bg-gray-900 text-white border-2 border-gray-700' },
   { id: 'gradient', label: 'Gradient', className: 'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white' },
+];
+
+const ACCENT_COLORS = [
+  { id: '#3b82f6', label: 'Blue' },
+  { id: '#10b981', label: 'Green' },
+  { id: '#f59e0b', label: 'Amber' },
+  { id: '#ef4444', label: 'Red' },
+  { id: '#8b5cf6', label: 'Purple' },
+  { id: '#ec4899', label: 'Pink' },
+  { id: '#06b6d4', label: 'Cyan' },
+  { id: '#f97316', label: 'Orange' },
+];
+
+const FONT_FAMILIES = [
+  { id: 'sans', label: 'Sans Serif', className: 'font-sans' },
+  { id: 'serif', label: 'Serif', className: 'font-serif' },
+  { id: 'mono', label: 'Monospace', className: 'font-mono' },
 ];
 
 export function AppearancePage() {
@@ -24,10 +41,18 @@ export function AppearancePage() {
   const updateProfile = useUpdateProfile();
 
   const [selectedTheme, setSelectedTheme] = useState('minimal');
+  const [accentColor, setAccentColor] = useState('#3b82f6');
+  const [fontFamily, setFontFamily] = useState('sans');
 
   useEffect(() => {
     if (existingProfile?.theme_preference) {
       setSelectedTheme(existingProfile.theme_preference);
+    }
+    if (existingProfile?.accent_color) {
+      setAccentColor(existingProfile.accent_color);
+    }
+    if (existingProfile?.font_family) {
+      setFontFamily(existingProfile.font_family);
     }
   }, [existingProfile]);
 
@@ -35,7 +60,11 @@ export function AppearancePage() {
     if (!existingProfile) return;
     updateProfile.mutate({
       filter: existingProfile.ItemId,
-      input: { theme_preference: selectedTheme },
+      input: {
+        theme_preference: selectedTheme,
+        accent_color: accentColor,
+        font_family: fontFamily,
+      },
     });
   };
 
@@ -47,6 +76,7 @@ export function AppearancePage() {
   };
 
   const isDark = selectedTheme === 'dark' || selectedTheme === 'bold' || selectedTheme === 'gradient';
+  const selectedFont = FONT_FAMILIES.find((f) => f.id === fontFamily)?.className || 'font-sans';
 
   if (isLoading) {
     return (
@@ -64,6 +94,7 @@ export function AppearancePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Theme Selector */}
         <div className="space-y-6">
+          {/* Theme */}
           <div>
             <Label className="text-lg font-semibold mb-4 block">{t('SELECT_THEME')}</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -88,6 +119,47 @@ export function AppearancePage() {
                   <p className="text-sm mt-2 opacity-80">
                     {t(`${theme.id.toUpperCase()}_THEME_DESC`) || `${theme.label} theme for your profile`}
                   </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Accent Color */}
+          <div>
+            <Label className="text-lg font-semibold mb-4 block">{t('ACCENT_COLOR')}</Label>
+            <div className="flex flex-wrap gap-3">
+              {ACCENT_COLORS.map((color) => (
+                <button
+                  key={color.id}
+                  onClick={() => setAccentColor(color.id)}
+                  className={`w-10 h-10 rounded-full border-2 transition-all ${
+                    accentColor === color.id
+                      ? 'border-gray-900 scale-110 shadow-md'
+                      : 'border-gray-200 hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: color.id }}
+                  title={color.label}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Font Family */}
+          <div>
+            <Label className="text-lg font-semibold mb-4 block">{t('FONT_FAMILY')}</Label>
+            <div className="grid grid-cols-3 gap-3">
+              {FONT_FAMILIES.map((font) => (
+                <button
+                  key={font.id}
+                  onClick={() => setFontFamily(font.id)}
+                  className={`p-3 rounded-lg border text-center transition-all ${
+                    fontFamily === font.id
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Type className="w-5 h-5 mx-auto mb-1" />
+                  <span className={`text-sm ${font.className}`}>{font.label}</span>
                 </button>
               ))}
             </div>
@@ -120,7 +192,9 @@ export function AppearancePage() {
             </div>
 
             {/* Preview content */}
-            <div className={`${themeStyles[selectedTheme] || themeStyles.minimal} transition-colors`}>
+            <div
+              className={`${themeStyles[selectedTheme] || themeStyles.minimal} ${selectedFont} transition-colors`}
+            >
               <div className="h-24 w-full relative overflow-hidden">
                 {existingProfile?.header_image_url ? (
                   <img src={existingProfile.header_image_url} alt="" className="w-full h-full object-cover" />
@@ -131,7 +205,10 @@ export function AppearancePage() {
 
               <div className="px-4 pb-4 relative">
                 <div className="flex items-end gap-3 -mt-8 mb-3">
-                  <div className="w-16 h-16 rounded-full border-4 border-white bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-md">
+                  <div
+                    className="w-16 h-16 rounded-full border-4 border-white bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-md"
+                    style={{ borderColor: accentColor }}
+                  >
                     {existingProfile?.profile_image_url ? (
                       <img src={existingProfile.profile_image_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -161,9 +238,8 @@ export function AppearancePage() {
                     {existingProfile.social_links.slice(0, 3).map((link, i) => (
                       <span
                         key={i}
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
-                          isDark ? 'bg-white/10' : 'bg-gray-100'
-                        }`}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-white"
+                        style={{ backgroundColor: accentColor }}
                       >
                         <Globe className="w-3 h-3" />
                         {link.platform}
