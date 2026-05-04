@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useGetProfileByUsername, useGetSectionsByUserId } from '../../hooks/use-profile';
+import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
 import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink } from 'lucide-react';
+import { SocialLink, UserCustomSection } from '../../types/profile.types';
 
 const platformIcons: Record<string, React.ReactNode> = {
   linkedin: <Linkedin className="w-5 h-5" />,
@@ -16,10 +17,10 @@ const platformIcons: Record<string, React.ReactNode> = {
 
 export function PublicProfilePage() {
   const { username } = useParams<{ username: string }>();
-  const { data, isLoading, error } = useGetProfileByUsername(username || '');
+  const { data, isLoading, error } = usePublicProfileByUsername(username || '');
   const profile = data?.getUserProfiles?.items?.[0];
 
-  const { data: sectionsData } = useGetSectionsByUserId(profile?.user_id || '');
+  const { data: sectionsData } = usePublicSectionsByUserId(profile?.user_id || '');
   const sections = sectionsData?.getUserCustomSections?.items || [];
 
   useEffect(() => {
@@ -146,7 +147,7 @@ export function PublicProfilePage() {
               Connect
             </h2>
             <div className="flex flex-wrap gap-3">
-              {profile.social_links.map((link, index) => (
+              {profile.social_links.map((link: SocialLink, index: number) => (
                 <a
                   key={index}
                   href={link.url}
@@ -170,9 +171,9 @@ export function PublicProfilePage() {
         {sections.length > 0 && (
           <div className="space-y-8">
             {sections
-              .filter((s) => s.is_visible !== false)
-              .sort((a, b) => (a.section_order || 0) - (b.section_order || 0))
-              .map((section) => (
+              .filter((s: UserCustomSection) => s.is_visible !== false)
+              .sort((a: UserCustomSection, b: UserCustomSection) => (a.section_order || 0) - (b.section_order || 0))
+              .map((section: UserCustomSection) => (
                 <div key={section.ItemId}>
                   <h2
                     className={`text-xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}

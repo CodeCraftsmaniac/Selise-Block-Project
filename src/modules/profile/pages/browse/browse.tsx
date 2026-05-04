@@ -1,17 +1,18 @@
 import { Link } from 'react-router-dom';
-import { useGetAllPublishedProfiles } from '../../hooks/use-profile';
+import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { Search, User, Globe } from 'lucide-react';
 import { useState } from 'react';
+import { UserProfile } from '../../types/profile.types';
 
 export function BrowsePage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
-  const { data, isLoading } = useGetAllPublishedProfiles(1, 50);
+  const { data, isLoading } = usePublicPublishedProfiles(1, 50);
   const profiles = data?.getUserProfiles?.items || [];
 
-  const filtered = profiles.filter((p) => {
+  const filtered = profiles.filter((p: UserProfile) => {
     const term = searchTerm.toLowerCase();
     return (
       p.display_name?.toLowerCase().includes(term) ||
@@ -67,7 +68,7 @@ export function BrowsePage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((profile) => (
+            {filtered.map((profile: UserProfile) => (
               <Link
                 key={profile.ItemId}
                 to={`/u/${profile.username}`}
