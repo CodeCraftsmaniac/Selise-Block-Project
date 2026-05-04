@@ -224,7 +224,9 @@ export function SectionsPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteSection.mutate({ filter: id, input: { isHardDelete: true } });
+    if (window.confirm(t('CONFIRM_DELETE_SECTION'))) {
+      deleteSection.mutate({ filter: id, input: { isHardDelete: true } });
+    }
   };
 
   const handleToggleVisibility = (section: UserCustomSection) => {
