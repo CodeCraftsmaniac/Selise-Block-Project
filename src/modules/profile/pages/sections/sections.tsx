@@ -115,7 +115,6 @@ export function SectionsPage() {
   const userId = user?.itemId || '';
 
   const { data, isLoading } = useGetSectionsByUserId(userId);
-  const apiSections = data?.getUserCustomSections?.items || [];
 
   const createSection = useCreateSection();
   const updateSection = useUpdateSection();
@@ -133,9 +132,10 @@ export function SectionsPage() {
   });
 
   useEffect(() => {
+    const apiSections = data?.getUserCustomSections?.items || [];
     const sorted = [...apiSections].sort((a, b) => (a.section_order || 0) - (b.section_order || 0));
     setItems(sorted);
-  }, [apiSections]);
+  }, [data]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
