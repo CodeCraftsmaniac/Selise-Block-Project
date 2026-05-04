@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetProfileByUsername, useGetSectionsByUserId } from '../../hooks/use-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
@@ -20,6 +21,31 @@ export function PublicProfilePage() {
 
   const { data: sectionsData } = useGetSectionsByUserId(profile?.user_id || '');
   const sections = sectionsData?.getUserCustomSections?.items || [];
+
+  useEffect(() => {
+    if (profile) {
+      document.title = `${profile.display_name} — Universal Profile Engine`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', profile.headline || profile.bio_text || `${profile.display_name}'s profile`);
+      }
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) {
+        ogTitle.setAttribute('content', profile.display_name);
+      }
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) {
+        ogDesc.setAttribute('content', profile.headline || profile.bio_text || `${profile.display_name}'s profile`);
+      }
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage) {
+        ogImage.setAttribute('content', profile.profile_image_url || '');
+      }
+    }
+    return () => {
+      document.title = 'Universal Profile Engine';
+    };
+  }, [profile]);
 
   if (isLoading) {
     return (
