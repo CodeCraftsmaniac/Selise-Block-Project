@@ -24,6 +24,7 @@ import {
   PreviewPage,
   LandingPage,
   BrowsePage,
+  AdminPage,
 } from '@/modules/profile';
 import { UsersTablePage } from '@/modules/iam';
 import { MainLayout } from '@/layout/main-layout/main-layout';
@@ -65,6 +66,7 @@ export const AppRoutes = () => {
                 <Route path="/dashboard/appearance" element={<AppearancePage />} />
                 <Route path="/dashboard/sections" element={<SectionsPage />} />
                 <Route path="/dashboard/preview" element={<PreviewPage />} />
+                <Route path="/dashboard/admin" element={<AdminPage />} />
                 <Route
                   path="/finance"
                   element={

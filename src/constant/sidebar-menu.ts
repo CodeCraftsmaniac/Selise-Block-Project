@@ -36,6 +36,7 @@ export const menuItems: MenuItem[] = [
     createMenuItem('appearance', 'APPEARANCE', '/dashboard/appearance', 'Palette'),
     createMenuItem('sections', 'SECTIONS', '/dashboard/sections', 'Layers'),
     createMenuItem('preview', 'PREVIEW', '/dashboard/preview', 'Eye'),
+    createMenuItem('admin', 'ADMIN', '/dashboard/admin', 'Shield', { roles: ['admin'] }),
   ]),
   createMenuItem('finance', 'FINANCE', '/finance', 'ChartNoAxesCombined', {
     roles: ['admin'],

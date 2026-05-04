@@ -21,6 +21,7 @@ import {
   Palette,
   Layers,
   Eye,
+  Shield,
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
@@ -81,6 +82,7 @@ const iconMap = {
   Palette,
   Layers,
   Eye,
+  Shield,
 } as const;
 
 export type MenuIconName = keyof typeof iconMap;

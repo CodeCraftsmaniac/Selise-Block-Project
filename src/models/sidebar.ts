@@ -25,7 +25,8 @@ export interface MenuItem {
     | 'MessageSquareText'
     | 'Palette'
     | 'Layers'
-    | 'Eye';
+    | 'Eye'
+    | 'Shield';
   children?: MenuItem[];
 
   roles?: string | string[];
