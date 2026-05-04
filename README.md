@@ -175,6 +175,5 @@ src/
 
 Connected to GitHub: `CodeCraftsmaniac/Selise-Block-Project`
 - `main` branch → production
-- `dev` branch → development
 
-Deploy via Blocks Cloud (Git-based) or manual upload.
+Single branch workflow: everything lives on `main`.
