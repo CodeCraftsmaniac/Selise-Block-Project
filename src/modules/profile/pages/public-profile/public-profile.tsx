@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
@@ -16,6 +17,7 @@ const platformIcons: Record<string, React.ReactNode> = {
 };
 
 export function PublicProfilePage() {
+  const { t } = useTranslation();
   const { username } = useParams<{ username: string }>();
   const { data, isLoading, error } = usePublicProfileByUsername(username || '');
   const profile = data?.getUserProfiles?.items?.[0];
@@ -92,6 +94,8 @@ export function PublicProfilePage() {
   }
 
   const theme = profile.theme_preference || 'minimal';
+  const accentColor = profile.accent_color || '#3b82f6';
+  const fontFamily = profile.font_family || 'sans';
 
   const themeStyles: Record<string, string> = {
     minimal: 'bg-white text-gray-900',
@@ -101,9 +105,10 @@ export function PublicProfilePage() {
   };
 
   const isDark = theme === 'dark' || theme === 'bold' || theme === 'gradient';
+  const fontClass = fontFamily === 'serif' ? 'font-serif' : fontFamily === 'mono' ? 'font-mono' : 'font-sans';
 
   return (
-    <div className={`min-h-screen ${themeStyles[theme] || themeStyles.minimal}`}>
+    <div className={`min-h-screen ${themeStyles[theme] || themeStyles.minimal} ${fontClass}`}>
       {/* Header Image */}
       <div className="w-full h-64 md:h-80 overflow-hidden relative">
         {profile.header_image_url ? (
@@ -122,7 +127,10 @@ export function PublicProfilePage() {
         <div className="relative -mt-20 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
             {/* Profile Picture */}
-            <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 overflow-hidden flex-shrink-0 shadow-lg">
+            <div
+              className="w-32 h-32 rounded-full border-4 bg-gray-200 overflow-hidden flex-shrink-0 shadow-lg"
+              style={{ borderColor: accentColor }}
+            >
               {profile.profile_image_url ? (
                 <img
                   src={profile.profile_image_url}
@@ -158,7 +166,7 @@ export function PublicProfilePage() {
         {profile.social_links && profile.social_links.length > 0 && (
           <div className="mb-8">
             <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Connect
+              {t('CONNECT')}
             </h2>
             <div className="flex flex-wrap gap-3">
               {profile.social_links.map((link: SocialLink, index: number) => (
@@ -167,11 +175,8 @@ export function PublicProfilePage() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    isDark
-                      ? 'bg-white/10 hover:bg-white/20 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                  }`}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-white"
+                  style={{ backgroundColor: accentColor }}
                 >
                   {platformIcons[link.platform.toLowerCase()] || <Globe className="w-5 h-5" />}
                   <span>{link.label || link.platform}</span>
