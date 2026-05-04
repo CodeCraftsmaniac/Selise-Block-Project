@@ -11,6 +11,7 @@ import {
   GET_SECTIONS_BY_USER_ID_QUERY,
   GET_ALL_PUBLISHED_PROFILES_QUERY,
 } from '../graphql/queries';
+import { UPDATE_USER_PROFILE_MUTATION } from '../graphql/mutations';
 import { UserProfile, UserCustomSection } from '../types/profile.types';
 
 interface ProfileQueryResponse {
@@ -45,5 +46,15 @@ export const getPublicPublishedProfiles = async (pageNo = 1, pageSize = 20): Pro
   return publicGraphqlClient.query<ProfileQueryResponse>({
     query: GET_ALL_PUBLISHED_PROFILES_QUERY,
     variables: { pageNo, pageSize },
+  });
+};
+
+export const incrementPublicProfileViewCount = async (itemId: string, currentCount: number): Promise<void> => {
+  return publicGraphqlClient.mutate<void>({
+    query: UPDATE_USER_PROFILE_MUTATION,
+    variables: {
+      filter: itemId,
+      input: { view_count: currentCount + 1 },
+    },
   });
 };

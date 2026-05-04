@@ -4,7 +4,7 @@ import { usePublishProfile, useUnpublishProfile } from '../../hooks/use-profile'
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { ExternalLink, Globe, Eye, EyeOff, QrCode } from 'lucide-react';
+import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer } from 'lucide-react';
 
 export function PreviewPage() {
   const { t } = useTranslation();
@@ -35,6 +35,10 @@ export function PreviewPage() {
     }
   };
 
+  const handlePrintProfile = () => {
+    window.open(`${window.location.origin}${publicUrl}?print=1`, '_blank');
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -50,10 +54,22 @@ export function PreviewPage() {
         <h1 className="text-2xl font-bold">{t('PROFILE_PREVIEW')}</h1>
         <div className="flex items-center gap-2">
           {profile?.is_published && (
-            <Button variant="outline" size="sm" onClick={handleCopyLink}>
-              <ExternalLink className="w-4 h-4 mr-2" />
-              {t('COPY_LINK')}
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                {t('COPY_LINK')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrintProfile}>
+                <Printer className="w-4 h-4 mr-2" />
+                {t('PRINT')}
+              </Button>
+            </>
+          )}
+          {profile?.is_published && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-sm text-gray-600">
+              <BarChart3 className="w-4 h-4" />
+              <span>{profile.view_count || 0} {t('VIEWS')}</span>
+            </div>
           )}
           <Button
             variant={profile?.is_published ? 'outline' : 'default'}

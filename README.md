@@ -58,8 +58,68 @@ Copy `.env.example` to `.env` and fill in your Blocks Cloud credentials.
 
 ## Data Gateway Schemas (Manual Setup)
 
-- `user_profile` — display name, username, bio, images, social links, theme, publish status
-- `user_custom_section` — sections (experience, projects, skills, etc.) with order & visibility
+Two schemas power the entire profile engine. All fields are configured in **Blocks Cloud > Services > Data Gateway**.
+
+### Schema 1: `user_profile`
+
+Stores the core identity and presentation settings for each user.
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `user_id` | String | Yes | — | Links to IAM `User.itemId` |
+| `username` | String | Yes | — | Unique URL slug: `/u/:username` |
+| `display_name` | String | Yes | — | Public name shown on profile |
+| `headline` | String | No | `''` | Professional tagline |
+| `bio_text` | String | No | `''` | Multi-line biography |
+| `profile_image_url` | String | No | `''` | Presigned URL from Storage Block |
+| `header_image_url` | String | No | `''` | Cover/banner image URL |
+| `social_links` | Object[] | No | `[]` | Array of `{platform, url, label}` |
+| `theme_preference` | String | No | `'minimal'` | `minimal`, `bold`, `dark`, `gradient` |
+| `accent_color` | String | No | `'#3b82f6'` | Hex color for badges/buttons |
+| `font_family` | String | No | `'sans'` | `sans`, `serif`, `mono` |
+| `is_published` | Boolean | No | `false` | Public visibility toggle |
+| `created_at` | DateTime | Auto | `now()` | Record creation |
+| `updated_at` | DateTime | Auto | `now()` | Last update |
+
+**Indexes**: `username` (unique), `user_id` (for fast lookup)
+
+### Schema 2: `user_custom_section`
+
+Stores modular content sections attached to a profile.
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `user_id` | String | Yes | — | Owner reference |
+| `section_type` | String | Yes | — | `Experience`, `Project`, `Skill`, `Education`, `Custom` |
+| `section_title` | String | No | `''` | Display title |
+| `section_content` | String | No | `''` | Body text (markdown supported) |
+| `section_order` | Number | No | `0` | Display ordering index |
+| `is_visible` | Boolean | No | `true` | Toggle visibility on public page |
+| `created_at` | DateTime | Auto | `now()` | Record creation |
+| `updated_at` | DateTime | Auto | `now()` | Last update |
+
+**Indexes**: `user_id` (for filtering), `section_order` (for sorting)
+
+### Row-Level Security (RLS)
+
+| Schema | Action | Rule |
+|--------|--------|------|
+| `user_profile` | **View** | Public (anyone can view published profiles) |
+| `user_profile` | **Create** | `user_id == auth.userId` (owner only) |
+| `user_profile` | **Edit** | `user_id == auth.userId` (owner only) |
+| `user_profile` | **Delete** | Role `admin` only |
+| `user_custom_section` | **View** | Public |
+| `user_custom_section` | **Create** | `user_id == auth.userId` |
+| `user_custom_section` | **Edit** | `user_id == auth.userId` |
+| `user_custom_section` | **Delete** | `user_id == auth.userId` |
+
+### Column-Level Security (CLS)
+
+| Schema | Field | Rule |
+|--------|-------|------|
+| `user_profile` | `user_id` | Read-only after creation |
+| `user_profile` | `is_published` | Editable by owner only |
+| `user_custom_section` | `user_id` | Read-only after creation |
 
 See `PORTAL_SETUP_GUIDE.md` for step-by-step Blocks Cloud configuration.
 
@@ -87,6 +147,29 @@ src/
   i18n/                # Localization setup
   routes/              # React Router config
 ```
+
+## GraphQL API Reference
+
+### Queries
+
+| Query | Variables | Purpose |
+|-------|-----------|---------|
+| `GET_PROFILE_BY_USERNAME_QUERY` | `{ username: String }` | Fetch public profile by slug |
+| `GET_PROFILE_BY_USER_ID_QUERY` | `{ userId: String }` | Fetch profile for current user |
+| `GET_ALL_PUBLISHED_PROFILES_QUERY` | `{ pageNo, pageSize }` | Browse all published profiles |
+| `GET_SECTIONS_BY_USER_ID_QUERY` | `{ userId: String }` | Fetch sections for a profile |
+
+### Mutations
+
+| Mutation | Input | Purpose |
+|----------|-------|---------|
+| `CREATE_USER_PROFILE_MUTATION` | `{ input: UserProfileInput }` | Create profile after signup |
+| `UPDATE_USER_PROFILE_MUTATION` | `{ filter: itemId, input }` | Update any profile field |
+| `PUBLISH_USER_PROFILE_MUTATION` | `{ filter: itemId }` | Set `is_published: true` |
+| `UNPUBLISH_USER_PROFILE_MUTATION` | `{ filter: itemId }` | Set `is_published: false` |
+| `CREATE_CUSTOM_SECTION_MUTATION` | `{ input: SectionInput }` | Add a new section |
+| `UPDATE_CUSTOM_SECTION_MUTATION` | `{ filter: itemId, input }` | Edit section content/order |
+| `DELETE_CUSTOM_SECTION_MUTATION` | `{ filter: itemId, input: { isHardDelete: true } }` | Remove section |
 
 ## Deployment
 

@@ -17,6 +17,7 @@ export interface UserProfile {
   theme_preference?: string;
   accent_color?: string;
   font_family?: string;
+  view_count?: number;
   is_published: boolean;
   created_at?: string;
   updated_at?: string;
@@ -71,6 +72,7 @@ export interface UpdateProfileParams {
     theme_preference?: string;
     accent_color?: string;
     font_family?: string;
+    view_count?: number;
     is_published?: boolean;
     username?: string;
   };

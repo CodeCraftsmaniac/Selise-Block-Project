@@ -42,6 +42,20 @@ export function PublicProfilePage() {
       if (ogImage) {
         ogImage.setAttribute('content', profile.profile_image_url || '');
       }
+
+      // Increment view count (once per 24h per browser)
+      const viewKey = `viewed_${profile.ItemId}`;
+      const lastViewed = localStorage.getItem(viewKey);
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+      if (!lastViewed || now - Number(lastViewed) > oneDay) {
+        import('../../services/public-profile.service').then(({ incrementPublicProfileViewCount }) => {
+          incrementPublicProfileViewCount(profile.ItemId, profile.view_count || 0).catch(() => {
+            // Silently fail if RLS blocks public mutation
+          });
+        });
+        localStorage.setItem(viewKey, String(now));
+      }
     }
     return () => {
       document.title = 'Universal Profile Engine';
