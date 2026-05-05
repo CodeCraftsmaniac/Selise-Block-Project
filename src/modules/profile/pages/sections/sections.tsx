@@ -12,7 +12,7 @@ import { Input } from '@/components/ui-kit/input';
 import { Label } from '@/components/ui-kit/label';
 import { Textarea } from '@/components/ui-kit/textarea';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Plus, Trash, Edit, GripVertical, Eye, EyeOff, FileText } from 'lucide-react';
+import { Plus, Trash, Edit, GripVertical, Eye, EyeOff, FileText, ChevronUp, ChevronDown } from 'lucide-react';
 import { UserCustomSection } from '../../types/profile.types';
 import {
   DndContext,
@@ -64,10 +64,14 @@ interface SortableSectionItemProps {
   onToggleVisibility: (section: UserCustomSection) => void;
   onDuplicate: (section: UserCustomSection) => void;
   onTogglePreview: (id: string) => void;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
+  isFirst: boolean;
+  isLast: boolean;
   isPreviewOpen: boolean;
 }
 
-function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, onDuplicate, onTogglePreview, isPreviewOpen }: SortableSectionItemProps) {
+function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, onDuplicate, onTogglePreview, onMoveUp, onMoveDown, isFirst, isLast, isPreviewOpen }: SortableSectionItemProps) {
   const { t } = useTranslation();
   const {
     attributes,
@@ -138,6 +142,22 @@ function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, on
         </button>
         <button onClick={() => onEdit(section)} className="p-2 hover:bg-gray-100 rounded" title={t('EDIT')}>
           <Edit className="w-4 h-4 text-gray-500" />
+        </button>
+        <button
+          onClick={() => onMoveUp(section.ItemId)}
+          disabled={isFirst}
+          className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+          title={t('MOVE_UP')}
+        >
+          <ChevronUp className="w-4 h-4 text-gray-500" />
+        </button>
+        <button
+          onClick={() => onMoveDown(section.ItemId)}
+          disabled={isLast}
+          className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+          title={t('MOVE_DOWN')}
+        >
+          <ChevronDown className="w-4 h-4 text-gray-500" />
         </button>
         <button onClick={() => onDuplicate(section)} className="p-2 hover:bg-gray-100 rounded" title={t('DUPLICATE')}>
           <Plus className="w-4 h-4 text-gray-500" />
@@ -297,6 +317,30 @@ export function SectionsPage() {
     });
   };
 
+  const handleMoveUp = (id: string) => {
+    const idx = items.findIndex((i) => i.ItemId === id);
+    if (idx <= 0) return;
+    const newItems = arrayMove(items, idx, idx - 1);
+    setItems(newItems);
+    newItems.forEach((item, index) => {
+      if (item.section_order !== index) {
+        updateSection.mutate({ filter: item.ItemId, input: { section_order: index } });
+      }
+    });
+  };
+
+  const handleMoveDown = (id: string) => {
+    const idx = items.findIndex((i) => i.ItemId === id);
+    if (idx === -1 || idx >= items.length - 1) return;
+    const newItems = arrayMove(items, idx, idx + 1);
+    setItems(newItems);
+    newItems.forEach((item, index) => {
+      if (item.section_order !== index) {
+        updateSection.mutate({ filter: item.ItemId, input: { section_order: index } });
+      }
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-4">
@@ -428,7 +472,7 @@ export function SectionsPage() {
             items={items.map((item) => item.ItemId)}
             strategy={verticalListSortingStrategy}
           >
-            {items.map((section) => (
+            {items.map((section, idx) => (
               <SortableSectionItem
                 key={section.ItemId}
                 section={section}
@@ -437,6 +481,10 @@ export function SectionsPage() {
                 onToggleVisibility={handleToggleVisibility}
                 onDuplicate={handleDuplicate}
                 onTogglePreview={(id) => setPreviewSectionId(previewSectionId === id ? null : id)}
+                onMoveUp={handleMoveUp}
+                onMoveDown={handleMoveDown}
+                isFirst={idx === 0}
+                isLast={idx === items.length - 1}
                 isPreviewOpen={previewSectionId === section.ItemId}
               />
             ))}
