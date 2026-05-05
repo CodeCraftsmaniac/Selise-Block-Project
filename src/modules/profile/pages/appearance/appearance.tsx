@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Label } from '@/components/ui-kit/label';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Check, Globe, User, Type } from 'lucide-react';
+import { Check, Globe, User, Type, Shuffle } from 'lucide-react';
 
 const THEMES = [
   { id: 'minimal', label: 'Minimal', className: 'bg-white border-2 border-gray-200 text-gray-900' },
@@ -181,6 +181,21 @@ export function AppearancePage() {
               disabled={updateProfile.isPending || !existingProfile}
             >
               {updateProfile.isPending ? t('SAVING') : t('SAVE_THEME')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const randomTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
+                const randomColor = ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)];
+                const randomFont = FONT_FAMILIES[Math.floor(Math.random() * FONT_FAMILIES.length)];
+                setSelectedTheme(randomTheme.id);
+                setAccentColor(randomColor.id);
+                setFontFamily(randomFont.id);
+              }}
+              disabled={updateProfile.isPending || !existingProfile}
+            >
+              <Shuffle className="w-4 h-4 mr-2" />
+              {t('RANDOMIZE')}
             </Button>
             <Button
               variant="outline"
