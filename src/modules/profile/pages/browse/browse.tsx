@@ -12,17 +12,24 @@ export function BrowsePage() {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState('recent');
   const { data, isLoading } = usePublicPublishedProfiles(1, 50);
   const profiles = data?.getUserProfiles?.items || [];
 
-  const filtered = profiles.filter((p: UserProfile) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      p.display_name?.toLowerCase().includes(term) ||
-      p.username?.toLowerCase().includes(term) ||
-      p.headline?.toLowerCase().includes(term)
-    );
-  });
+  const filtered = profiles
+    .filter((p: UserProfile) => {
+      const term = searchTerm.toLowerCase();
+      return (
+        p.display_name?.toLowerCase().includes(term) ||
+        p.username?.toLowerCase().includes(term) ||
+        p.headline?.toLowerCase().includes(term)
+      );
+    })
+    .sort((a: UserProfile, b: UserProfile) => {
+      if (sortBy === 'views') return (b.view_count || 0) - (a.view_count || 0);
+      if (sortBy === 'name') return (a.display_name || '').localeCompare(b.display_name || '');
+      return 0;
+    });
 
   if (isLoading) {
     return (
@@ -50,16 +57,27 @@ export function BrowsePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Search */}
-        <div className="relative mb-8 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder={t('SEARCH_PROFILES')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          />
+        {/* Search + Sort */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('SEARCH_PROFILES')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+          </div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+          >
+            <option value="recent">{t('SORT_RECENT')}</option>
+            <option value="views">{t('SORT_VIEWS')}</option>
+            <option value="name">{t('SORT_NAME')}</option>
+          </select>
         </div>
 
         {/* Profile Grid */}
