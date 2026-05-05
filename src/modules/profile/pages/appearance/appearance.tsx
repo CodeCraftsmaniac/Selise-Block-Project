@@ -127,7 +127,7 @@ export function AppearancePage() {
           {/* Accent Color */}
           <div>
             <Label className="text-lg font-semibold mb-4 block">{t('ACCENT_COLOR')}</Label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 items-center">
               {ACCENT_COLORS.map((color) => (
                 <button
                   key={color.id}
@@ -141,6 +141,16 @@ export function AppearancePage() {
                   title={color.label}
                 />
               ))}
+              <div className="flex items-center gap-2 ml-2">
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={(e) => setAccentColor(e.target.value)}
+                  className="w-10 h-10 p-0 border-0 rounded-full overflow-hidden cursor-pointer"
+                  title={t('CUSTOM_COLOR') || 'Custom color'}
+                />
+                <span className="text-sm text-gray-500">{accentColor}</span>
+              </div>
             </div>
           </div>
 
