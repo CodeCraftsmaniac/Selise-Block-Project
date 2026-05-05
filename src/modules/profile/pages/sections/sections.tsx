@@ -354,7 +354,12 @@ export function SectionsPage() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t('CUSTOM_SECTIONS')}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">{t('CUSTOM_SECTIONS')}</h1>
+          <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full font-medium">
+            {items.length}
+          </span>
+        </div>
         {!isAdding && (
           <Button onClick={() => setIsAdding(true)} size="sm">
             <Plus className="w-4 h-4 mr-2" />
