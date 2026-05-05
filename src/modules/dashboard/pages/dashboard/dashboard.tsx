@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, BarChart3, FileText } from 'lucide-react';
 import {
   DashboardHeader,
   DashboardOverview,
@@ -7,6 +7,9 @@ import {
   DashboardSystemOverview,
 } from '@/modules/dashboard';
 import { useGetAccount } from '@/modules/profile/hooks/use-account';
+import { useGetProfileByUserId } from '@/modules/profile/hooks/use-profile';
+import { useGetSectionsByUserId } from '@/modules/profile/hooks/use-profile';
+import { useAuthStore } from '@/state/store/auth';
 
 const DashboardLoader = () => {
   return (
@@ -18,6 +21,25 @@ const DashboardLoader = () => {
 
 export const DashboardPage = () => {
   const { isLoading } = useGetAccount();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.itemId || '';
+  const { data: profileData } = useGetProfileByUserId(userId);
+  const { data: sectionsData } = useGetSectionsByUserId(userId);
+  const profile = profileData?.getUserProfiles?.items?.[0];
+  const sections = sectionsData?.getUserCustomSections?.items || [];
+
+  const profileViews = profile?.view_count || 0;
+  const sectionCount = sections.length;
+  const completionScore = [
+    !!profile?.display_name,
+    !!profile?.username,
+    !!profile?.headline,
+    !!profile?.bio_text,
+    !!profile?.profile_image_url,
+    (profile?.social_links?.length || 0) > 0,
+    !!profile?.theme_preference,
+  ].filter(Boolean).length;
+  const completionPercent = Math.round((completionScore / 7) * 100);
 
   return (
     <>
@@ -27,6 +49,44 @@ export const DashboardPage = () => {
         <main className="flex w-full flex-col" role="main" aria-label="Dashboard Content">
           <DashboardHeader />
           <div className="flex flex-col gap-4">
+            {/* Profile Stats */}
+            {profile && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white p-5 rounded-xl border shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Eye className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Profile Views</p>
+                      <p className="text-2xl font-bold">{profileViews}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white p-5 rounded-xl border shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Completion</p>
+                      <p className="text-2xl font-bold">{completionPercent}%</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white p-5 rounded-xl border shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Sections</p>
+                      <p className="text-2xl font-bold">{sectionCount}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <DashboardOverview />
             <div className="flex flex-col md:flex-row gap-4">
               <DashboardUserPlatform />
