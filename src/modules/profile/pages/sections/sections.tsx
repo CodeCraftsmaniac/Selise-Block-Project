@@ -12,7 +12,7 @@ import { Input } from '@/components/ui-kit/input';
 import { Label } from '@/components/ui-kit/label';
 import { Textarea } from '@/components/ui-kit/textarea';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Plus, Trash, Edit, GripVertical, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash, Edit, GripVertical, Eye, EyeOff, FileText } from 'lucide-react';
 import { UserCustomSection } from '../../types/profile.types';
 import {
   DndContext,
@@ -40,9 +40,11 @@ interface SortableSectionItemProps {
   onDelete: (id: string) => void;
   onToggleVisibility: (section: UserCustomSection) => void;
   onDuplicate: (section: UserCustomSection) => void;
+  onTogglePreview: (id: string) => void;
+  isPreviewOpen: boolean;
 }
 
-function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, onDuplicate }: SortableSectionItemProps) {
+function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, onDuplicate, onTogglePreview, isPreviewOpen }: SortableSectionItemProps) {
   const { t } = useTranslation();
   const {
     attributes,
@@ -99,6 +101,13 @@ function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, on
             <EyeOff className="w-4 h-4 text-gray-400" />
           )}
         </button>
+        <button
+          onClick={() => onTogglePreview(section.ItemId)}
+          className={`p-2 rounded ${isPreviewOpen ? 'bg-blue-50' : 'hover:bg-gray-100'}`}
+          title={t('PREVIEW')}
+        >
+          <FileText className={`w-4 h-4 ${isPreviewOpen ? 'text-blue-500' : 'text-gray-500'}`} />
+        </button>
         <button onClick={() => onEdit(section)} className="p-2 hover:bg-gray-100 rounded" title={t('EDIT')}>
           <Edit className="w-4 h-4 text-gray-500" />
         </button>
@@ -109,6 +118,12 @@ function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, on
           <Trash className="w-4 h-4 text-red-500" />
         </button>
       </div>
+      {isPreviewOpen && section.section_content && (
+        <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700 whitespace-pre-wrap">
+          <p className="text-xs font-medium text-gray-400 uppercase mb-1">{t('PREVIEW')}</p>
+          {section.section_content}
+        </div>
+      )}
     </div>
   );
 }
@@ -127,6 +142,7 @@ export function SectionsPage() {
   const [items, setItems] = useState<UserCustomSection[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [previewSectionId, setPreviewSectionId] = useState<string | null>(null);
   const [form, setForm] = useState({
     section_type: 'Experience',
     section_title: '',
@@ -365,6 +381,8 @@ export function SectionsPage() {
                 onDelete={handleDelete}
                 onToggleVisibility={handleToggleVisibility}
                 onDuplicate={handleDuplicate}
+                onTogglePreview={(id) => setPreviewSectionId(previewSectionId === id ? null : id)}
+                isPreviewOpen={previewSectionId === section.ItemId}
               />
             ))}
           </SortableContext>
