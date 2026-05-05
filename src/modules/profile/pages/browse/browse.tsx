@@ -3,7 +3,7 @@ import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { BackToTop } from '@/components/core/back-to-top/back-to-top';
-import { Search, User, Globe } from 'lucide-react';
+import { Search, User, Globe, Link as LinkIcon, Check } from 'lucide-react';
 import { useState } from 'react';
 import { UserProfile } from '../../types/profile.types';
 
@@ -11,6 +11,7 @@ export function BrowsePage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { data, isLoading } = usePublicPublishedProfiles(1, 50);
   const profiles = data?.getUserProfiles?.items || [];
 
@@ -109,9 +110,34 @@ export function BrowsePage() {
                     )}
                   </div>
 
-                  <div className="mt-4 flex items-center gap-1 text-blue-600 text-sm font-medium">
-                    <Globe className="w-4 h-4" />
-                    {t('VIEW_PROFILE')}
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="flex items-center gap-1 text-blue-600 text-sm font-medium">
+                      <Globe className="w-4 h-4" />
+                      {t('VIEW_PROFILE')}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const url = `${window.location.origin}/u/${profile.username}`;
+                        navigator.clipboard.writeText(url);
+                        setCopiedId(profile.ItemId);
+                        setTimeout(() => setCopiedId(null), 2000);
+                      }}
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {copiedId === profile.ItemId ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-green-500" />
+                          <span className="text-green-500">{t('COPIED')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <LinkIcon className="w-3.5 h-3.5" />
+                          {t('COPY_LINK')}
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </Link>
