@@ -12,7 +12,7 @@ import { Input } from '@/components/ui-kit/input';
 import { Label } from '@/components/ui-kit/label';
 import { Textarea } from '@/components/ui-kit/textarea';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Plus, Trash, Upload, X, ExternalLink } from 'lucide-react';
+import { Plus, Trash, Upload, X, ExternalLink, Keyboard } from 'lucide-react';
 import { ProfileCompletionBar } from '../../components/profile-completion-bar/profile-completion-bar';
 import { SocialLink, UserProfile } from '../../types/profile.types';
 
@@ -234,17 +234,37 @@ export function ProfileEditorPage() {
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{t('PROFILE_EDITOR')}</h1>
-        {existingProfile?.username && (
-          <a
-            href={`/u/${existingProfile.username}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" />
-            {t('LIVE_PREVIEW')}
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="relative group">
+            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+              <Keyboard className="w-5 h-5" />
+            </button>
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white border rounded-xl shadow-lg p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <p className="font-semibold text-gray-900 mb-2">{t('KEYBOARD_SHORTCUTS')}</p>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">{t('SAVE_PROFILE')}</span>
+                  <kbd className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono">Ctrl + S</kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">{t('ADD_LINK')}</span>
+                  <kbd className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono">Enter</kbd>
+                </div>
+              </div>
+            </div>
+          </div>
+          {existingProfile?.username && (
+            <a
+              href={`/u/${existingProfile.username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              {t('LIVE_PREVIEW')}
+            </a>
+          )}
+        </div>
       </div>
 
       {existingProfile && <ProfileCompletionBar profile={existingProfile} />}
