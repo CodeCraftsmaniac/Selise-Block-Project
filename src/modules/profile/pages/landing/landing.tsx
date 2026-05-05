@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
-import { Globe, Palette, Share2, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Globe, Palette, Share2, Sparkles, User, ArrowRight, Loader2, Search } from 'lucide-react';
 import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 
 export function LandingPage() {
@@ -23,13 +23,39 @@ export function LandingPage() {
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
           {t('HERO_SUBTITLE')}
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button size="lg" onClick={() => navigate('/signup')}>
             {t('CREATE_YOUR_PROFILE')}
           </Button>
           <Button variant="outline" size="lg" onClick={() => navigate('/login')}>
             {t('SIGN_IN')}
           </Button>
+        </div>
+
+        {/* Search */}
+        <div className="max-w-lg mx-auto">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+              if (input.value.trim()) {
+                navigate(`/browse?q=${encodeURIComponent(input.value.trim())}`);
+              } else {
+                navigate('/browse');
+              }
+            }}
+            className="relative"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('SEARCH_PROFILES')}
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+            />
+            <Button type="submit" size="sm" className="absolute right-2 top-1/2 -translate-y-1/2">
+              {t('SEARCH')}
+            </Button>
+          </form>
         </div>
       </div>
 
