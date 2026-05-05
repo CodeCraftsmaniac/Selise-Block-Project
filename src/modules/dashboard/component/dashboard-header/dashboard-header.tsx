@@ -1,14 +1,28 @@
-import { Download, RefreshCcw } from 'lucide-react';
+import { Download, RefreshCcw, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui-kit/button';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/styles/theme/theme-provider';
 
 export const DashboardHeader = () => {
   const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <div className="mb-[18px] flex items-center justify-between md:mb-[32px]">
       <h3 className="text-2xl font-bold tracking-tight text-high-emphasis">{t('DASHBOARD')}</h3>
       <div className="flex gap-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleTheme}
+          aria-label={t('TOGGLE_THEME')}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </Button>
         <Button
           variant="outline"
           className="text-high-emphasis hover:text-high-emphasis  font-bold"
