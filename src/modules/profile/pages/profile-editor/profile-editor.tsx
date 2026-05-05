@@ -330,7 +330,20 @@ export function ProfileEditorPage() {
                 <span className="text-gray-400 text-2xl">?</span>
               </div>
             )}
-            <label className="cursor-pointer">
+            <label
+              className="cursor-pointer border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-blue-400 hover:bg-blue-50 transition-colors"
+              onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-blue-400', 'bg-blue-50'); }}
+              onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50'); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  const syntheticEvent = { target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>;
+                  handleFileUpload(syntheticEvent, 'profile_image_url');
+                }
+              }}
+            >
               <input
                 type="file"
                 accept="image/*"
@@ -338,10 +351,12 @@ export function ProfileEditorPage() {
                 onChange={(e) => handleFileUpload(e, 'profile_image_url')}
                 disabled={uploadingField === 'profile_image_url'}
               />
-              <Button type="button" variant="outline" size="sm" disabled={uploadingField === 'profile_image_url'}>
-                <Upload className="w-4 h-4 mr-2" />
-                {uploadingField === 'profile_image_url' ? t('UPLOADING') : t('UPLOAD')}
-              </Button>
+              <div className="flex flex-col items-center text-center">
+                <Upload className="w-5 h-5 text-gray-400 mb-1" />
+                <span className="text-xs text-gray-500">
+                  {uploadingField === 'profile_image_url' ? t('UPLOADING') : t('DRAG_DROP_OR_CLICK')}
+                </span>
+              </div>
             </label>
           </div>
         </div>
@@ -365,7 +380,20 @@ export function ProfileEditorPage() {
                 </button>
               </div>
             ) : (
-              <label className="block w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 flex items-center justify-center">
+              <label
+                className="block w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 flex items-center justify-center transition-colors"
+                onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-blue-400', 'bg-blue-50'); }}
+                onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50'); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                  const file = e.dataTransfer.files?.[0];
+                  if (file && file.type.startsWith('image/')) {
+                    const syntheticEvent = { target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>;
+                    handleFileUpload(syntheticEvent, 'header_image_url');
+                  }
+                }}
+              >
                 <input
                   type="file"
                   accept="image/*"
@@ -376,7 +404,7 @@ export function ProfileEditorPage() {
                 <div className="text-center">
                   <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
                   <span className="text-gray-500">
-                    {uploadingField === 'header_image_url' ? t('UPLOADING') : t('UPLOAD_HEADER_IMAGE')}
+                    {uploadingField === 'header_image_url' ? t('UPLOADING') : t('DRAG_DROP_OR_CLICK')}
                   </span>
                 </div>
               </label>
