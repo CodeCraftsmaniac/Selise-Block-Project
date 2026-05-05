@@ -62,6 +62,27 @@ export function LandingPage() {
         </div>
       </div>
 
+      {/* How It Works */}
+      <div className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">{t('HOW_IT_WORKS')}</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { step: '1', title: t('STEP_1_TITLE'), desc: t('STEP_1_DESC'), icon: <User className="w-6 h-6 text-white" /> },
+            { step: '2', title: t('STEP_2_TITLE'), desc: t('STEP_2_DESC'), icon: <Palette className="w-6 h-6 text-white" /> },
+            { step: '3', title: t('STEP_3_TITLE'), desc: t('STEP_3_DESC'), icon: <Globe className="w-6 h-6 text-white" /> },
+          ].map((item) => (
+            <div key={item.step} className="text-center">
+              <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                {item.icon}
+              </div>
+              <span className="text-sm font-bold text-blue-600 uppercase tracking-wide">{t('STEP')} {item.step}</span>
+              <h3 className="text-lg font-semibold text-gray-900 mt-1 mb-2">{item.title}</h3>
+              <p className="text-gray-600 text-sm">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Example Profile Preview */}
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 gap-12 items-center">
