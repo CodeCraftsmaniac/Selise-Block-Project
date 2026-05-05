@@ -287,7 +287,12 @@ export function SectionsPage() {
           </div>
 
           <div>
-            <Label>{t('SECTION_CONTENT')}</Label>
+            <div className="flex items-center justify-between">
+              <Label>{t('SECTION_CONTENT')}</Label>
+              <span className="text-xs text-gray-400">
+                {(form.section_content || '').length} {t('CHARS')}
+              </span>
+            </div>
             <Textarea
               value={form.section_content}
               onChange={(e) => setForm((prev) => ({ ...prev, section_content: e.target.value }))}
