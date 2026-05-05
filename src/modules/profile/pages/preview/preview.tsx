@@ -4,8 +4,24 @@ import { usePublishProfile, useUnpublishProfile } from '../../hooks/use-profile'
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer } from 'lucide-react';
+import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer, Clock } from 'lucide-react';
 import { ShareProfileModal } from '../../components/share-profile-modal/share-profile-modal';
+
+function formatRelativeTime(dateString: string | undefined): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 30) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 export function PreviewPage() {
   const { t } = useTranslation();
@@ -52,7 +68,15 @@ export function PreviewPage() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t('PROFILE_PREVIEW')}</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{t('PROFILE_PREVIEW')}</h1>
+          {profile?.updated_at && (
+            <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              {t('LAST_UPDATED')}: {formatRelativeTime(profile.updated_at)}
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {profile?.is_published && (
             <>

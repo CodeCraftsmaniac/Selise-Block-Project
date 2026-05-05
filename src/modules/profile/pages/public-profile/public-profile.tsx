@@ -6,8 +6,24 @@ import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hoo
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
 import { BackToTop } from '@/components/core/back-to-top/back-to-top';
-import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User, Printer } from 'lucide-react';
+import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User, Printer, Clock } from 'lucide-react';
 import { SocialLink, UserCustomSection } from '../../types/profile.types';
+
+function formatRelativeTime(dateString: string | undefined): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 30) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 const platformIcons: Record<string, React.ReactNode> = {
   linkedin: <Linkedin className="w-5 h-5" />,
@@ -289,6 +305,16 @@ export function PublicProfilePage() {
                   )}
                 </div>
               ))}
+          </div>
+        )}
+
+        {/* Last Updated */}
+        {profile.updated_at && (
+          <div className={`text-center text-xs pt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            <span className="inline-flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {t('LAST_UPDATED')}: {formatRelativeTime(profile.updated_at)}
+            </span>
           </div>
         )}
       </div>
