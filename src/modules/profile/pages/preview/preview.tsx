@@ -4,7 +4,7 @@ import { usePublishProfile, useUnpublishProfile } from '../../hooks/use-profile'
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer, Clock, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer, Clock, Download, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 import { ShareProfileModal } from '../../components/share-profile-modal/share-profile-modal';
 
 function formatRelativeTime(dateString: string | undefined): string {
@@ -56,6 +56,29 @@ export function PreviewPage() {
     window.open(`${window.location.origin}${publicUrl}?print=1`, '_blank');
   };
 
+  const handleDownloadJSON = () => {
+    if (!profile) return;
+    const data = {
+      display_name: profile.display_name,
+      username: profile.username,
+      headline: profile.headline,
+      bio_text: profile.bio_text,
+      social_links: profile.social_links,
+      theme_preference: profile.theme_preference,
+      accent_color: profile.accent_color,
+      font_family: profile.font_family,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${profile.username || 'profile'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -91,6 +114,10 @@ export function PreviewPage() {
               <Button variant="outline" size="sm" onClick={handlePrintProfile}>
                 <Printer className="w-4 h-4 mr-2" />
                 {t('PRINT')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadJSON}>
+                <Download className="w-4 h-4 mr-2" />
+                {t('EXPORT_JSON')}
               </Button>
             </>
           )}
