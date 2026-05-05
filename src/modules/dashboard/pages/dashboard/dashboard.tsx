@@ -1,4 +1,4 @@
-import { Loader2, Eye, BarChart3, FileText } from 'lucide-react';
+import { Loader2, Eye, BarChart3, FileText, User, Palette, Layers, ExternalLink } from 'lucide-react';
 import {
   DashboardHeader,
   DashboardOverview,
@@ -87,6 +87,35 @@ export const DashboardPage = () => {
                 </div>
               </div>
             )}
+
+            {/* Quick Actions */}
+            {profile && (
+              <div className="bg-white p-5 rounded-xl border shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Edit Profile', icon: <User className="w-5 h-5" />, href: '/profile/editor', color: 'bg-blue-100 text-blue-600' },
+                    { label: 'Appearance', icon: <Palette className="w-5 h-5" />, href: '/profile/appearance', color: 'bg-purple-100 text-purple-600' },
+                    { label: 'Sections', icon: <Layers className="w-5 h-5" />, href: '/profile/sections', color: 'bg-green-100 text-green-600' },
+                    { label: 'Preview', icon: <ExternalLink className="w-5 h-5" />, href: `/u/${profile.username}`, color: 'bg-orange-100 text-orange-600', external: true },
+                  ].map((action) => (
+                    <a
+                      key={action.href}
+                      href={action.href}
+                      target={action.external ? '_blank' : undefined}
+                      rel={action.external ? 'noopener noreferrer' : undefined}
+                      className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.color}`}>
+                        {action.icon}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">{action.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <DashboardOverview />
             <div className="flex flex-col md:flex-row gap-4">
               <DashboardUserPlatform />
