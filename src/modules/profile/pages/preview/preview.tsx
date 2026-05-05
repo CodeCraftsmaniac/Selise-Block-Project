@@ -4,7 +4,7 @@ import { usePublishProfile, useUnpublishProfile } from '../../hooks/use-profile'
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui-kit/button';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer, Clock } from 'lucide-react';
+import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer, Clock, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 import { ShareProfileModal } from '../../components/share-profile-modal/share-profile-modal';
 
 function formatRelativeTime(dateString: string | undefined): string {
@@ -206,6 +206,38 @@ export function PreviewPage() {
                     {`${window.location.origin}${publicUrl}`}
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Getting Started Checklist */}
+          {profile && !profile.is_published && (
+            <div className="border rounded-xl p-6 mt-6 bg-blue-50 border-blue-200">
+              <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                <ArrowRight className="w-5 h-5" />
+                {t('GETTING_STARTED')}
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { label: t('ADD_DISPLAY_NAME'), done: !!profile.display_name },
+                  { label: t('ADD_USERNAME'), done: !!profile.username },
+                  { label: t('ADD_HEADLINE'), done: !!profile.headline },
+                  { label: t('ADD_BIO'), done: !!profile.bio_text },
+                  { label: t('ADD_PROFILE_IMAGE'), done: !!profile.profile_image_url },
+                  { label: t('ADD_SOCIAL_LINKS'), done: (profile.social_links?.length || 0) > 0 },
+                  { label: t('CUSTOMIZE_APPEARANCE'), done: !!profile.theme_preference },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-2 text-sm">
+                    {item.done ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-blue-400 shrink-0" />
+                    )}
+                    <span className={item.done ? 'text-green-800 line-through' : 'text-blue-800'}>
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
