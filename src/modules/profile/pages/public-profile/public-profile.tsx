@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/state/store/auth';
 import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
-import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3 } from 'lucide-react';
+import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User } from 'lucide-react';
 import { SocialLink, UserCustomSection } from '../../types/profile.types';
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -22,6 +23,8 @@ export function PublicProfilePage() {
   const { data, isLoading, error } = usePublicProfileByUsername(username || '');
   const profile = data?.getUserProfiles?.items?.[0];
   const [copied, setCopied] = useState(false);
+  const currentUser = useAuthStore((state) => state.user);
+  const isOwner = currentUser?.itemId === profile?.user_id;
 
   const { data: sectionsData } = usePublicSectionsByUserId(profile?.user_id || '');
   const sections = sectionsData?.getUserCustomSections?.items || [];
@@ -170,7 +173,17 @@ export function PublicProfilePage() {
                   {profile.headline}
                 </p>
               )}
-              <div className="flex items-center gap-3 mt-3">
+              <div className="flex items-center gap-3 mt-3 flex-wrap">
+                {isOwner && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium ${
+                      isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    {t('YOUR_PROFILE')}
+                  </span>
+                )}
                 <button
                   onClick={handleCopyLink}
                   className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${

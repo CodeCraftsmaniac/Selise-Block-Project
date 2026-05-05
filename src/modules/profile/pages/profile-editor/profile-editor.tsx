@@ -12,7 +12,7 @@ import { Input } from '@/components/ui-kit/input';
 import { Label } from '@/components/ui-kit/label';
 import { Textarea } from '@/components/ui-kit/textarea';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Plus, Trash, Upload, X } from 'lucide-react';
+import { Plus, Trash, Upload, X, ExternalLink } from 'lucide-react';
 import { ProfileCompletionBar } from '../../components/profile-completion-bar/profile-completion-bar';
 import { SocialLink, UserProfile } from '../../types/profile.types';
 
@@ -213,7 +213,20 @@ export function ProfileEditorPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{t('PROFILE_EDITOR')}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">{t('PROFILE_EDITOR')}</h1>
+        {existingProfile?.username && (
+          <a
+            href={`/u/${existingProfile.username}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            {t('LIVE_PREVIEW')}
+          </a>
+        )}
+      </div>
 
       {existingProfile && <ProfileCompletionBar profile={existingProfile} />}
 
