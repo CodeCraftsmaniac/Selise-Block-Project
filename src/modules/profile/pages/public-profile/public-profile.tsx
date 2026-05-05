@@ -5,6 +5,7 @@ import { useAuthStore } from '@/state/store/auth';
 import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
+import { BackToTop } from '@/components/core/back-to-top/back-to-top';
 import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User, Printer } from 'lucide-react';
 import { SocialLink, UserCustomSection } from '../../types/profile.types';
 
@@ -291,6 +292,7 @@ export function PublicProfilePage() {
           </div>
         )}
       </div>
+      <BackToTop />
     </div>
   );
 }

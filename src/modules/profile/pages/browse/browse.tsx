@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
+import { BackToTop } from '@/components/core/back-to-top/back-to-top';
 import { Search, User, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { UserProfile } from '../../types/profile.types';
@@ -117,6 +118,7 @@ export function BrowsePage() {
           </div>
         )}
       </div>
+      <BackToTop />
     </div>
   );
 }
