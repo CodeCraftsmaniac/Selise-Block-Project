@@ -34,6 +34,29 @@ import { CSS } from '@dnd-kit/utilities';
 
 const SECTION_TYPES = ['Experience', 'Project', 'Skill', 'Education', 'Custom'];
 
+const SECTION_TEMPLATES: Record<string, { title: string; content: string }[]> = {
+  Experience: [
+    { title: 'Software Engineer at Company', content: '• Developed and maintained web applications\n• Collaborated with cross-functional teams\n• Improved application performance by 30%' },
+    { title: 'Product Designer', content: '• Designed user interfaces for mobile and web\n• Conducted user research and usability testing\n• Created design systems and component libraries' },
+  ],
+  Project: [
+    { title: 'E-commerce Platform', content: '• Built a full-stack e-commerce solution\n• Integrated payment gateways and inventory management\n• Achieved 99.9% uptime' },
+    { title: 'Mobile App', content: '• Developed cross-platform mobile application\n• Implemented real-time notifications\n• 10,000+ downloads on app stores' },
+  ],
+  Skill: [
+    { title: 'Technical Skills', content: '• JavaScript / TypeScript\n• React / Next.js\n• Node.js / Express\n• GraphQL / REST APIs' },
+    { title: 'Design Skills', content: '• UI/UX Design\n• Figma / Sketch\n• Design Systems\n• Prototyping' },
+  ],
+  Education: [
+    { title: 'Computer Science Degree', content: '• Bachelor of Science in Computer Science\n• GPA: 3.8/4.0\n• Relevant coursework: Algorithms, Data Structures, Software Engineering' },
+    { title: 'Certifications', content: '• AWS Certified Solutions Architect\n• Google Cloud Professional\n• Scrum Master Certified' },
+  ],
+  Custom: [
+    { title: 'About Me', content: 'Write a brief description about yourself...' },
+    { title: 'Hobbies', content: '• Photography\n• Hiking\n• Reading\n• Cooking' },
+  ],
+};
+
 interface SortableSectionItemProps {
   section: UserCustomSection;
   onEdit: (section: UserCustomSection) => void;
@@ -314,6 +337,33 @@ export function SectionsPage() {
               ))}
             </select>
           </div>
+
+          {SECTION_TEMPLATES[form.section_type] && SECTION_TEMPLATES[form.section_type].length > 0 && !editingId && (
+            <div>
+              <Label>{t('USE_TEMPLATE')}</Label>
+              <select
+                className="w-full border rounded-md px-3 py-2 mt-1"
+                onChange={(e) => {
+                  const idx = parseInt(e.target.value);
+                  if (!isNaN(idx)) {
+                    const template = SECTION_TEMPLATES[form.section_type][idx];
+                    setForm((prev) => ({
+                      ...prev,
+                      section_title: template.title,
+                      section_content: template.content,
+                    }));
+                  }
+                }}
+              >
+                <option value="">{t('SELECT_TEMPLATE')}</option>
+                {SECTION_TEMPLATES[form.section_type].map((template, idx) => (
+                  <option key={idx} value={idx}>
+                    {template.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <Label>{t('SECTION_TITLE')}</Label>
