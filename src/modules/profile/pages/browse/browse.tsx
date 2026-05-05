@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
@@ -9,7 +9,8 @@ import { UserProfile } from '../../types/profile.types';
 
 export function BrowsePage() {
   const { t } = useTranslation();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const { data, isLoading } = usePublicPublishedProfiles(1, 50);
   const profiles = data?.getUserProfiles?.items || [];
 
