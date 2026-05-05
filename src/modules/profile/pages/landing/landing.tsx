@@ -214,6 +214,56 @@ export function LandingPage() {
         ) : null}
       </div>
 
+      {/* Featured Profile of the Day */}
+      {profiles?.getUserProfiles?.items && profiles.getUserProfiles.items.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('FEATURED_PROFILE')}</h2>
+          {(() => {
+            const featured = profiles.getUserProfiles.items[0];
+            return (
+              <div className="max-w-2xl mx-auto">
+                <Link
+                  to={`/u/${featured.username}`}
+                  className="block bg-white rounded-2xl border shadow-sm hover:shadow-lg transition-shadow overflow-hidden"
+                >
+                  <div className="h-40 bg-gray-200 relative overflow-hidden">
+                    {featured.header_image_url ? (
+                      <img src={featured.header_image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-r from-green-400 to-teal-500" />
+                    )}
+                  </div>
+                  <div className="p-6 relative">
+                    <div className="w-20 h-20 rounded-full border-4 border-white bg-gray-200 overflow-hidden absolute -top-10 left-6 flex items-center justify-center">
+                      {featured.profile_image_url ? (
+                        <img src={featured.profile_image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-10 h-10 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="mt-8">
+                      <h3 className="text-2xl font-bold text-gray-900">{featured.display_name}</h3>
+                      <p className="text-gray-500">@{featured.username}</p>
+                      {featured.headline && <p className="text-gray-600 mt-2">{featured.headline}</p>}
+                      {featured.bio_text && (
+                        <p className="text-gray-600 mt-3 text-sm line-clamp-3">{featured.bio_text}</p>
+                      )}
+                      <div className="flex items-center gap-4 mt-4">
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                          <Globe className="w-3 h-3" />
+                          {featured.view_count || 0} {t('VIEWS')}
+                        </span>
+                        <span className="text-xs text-blue-600 font-medium">{t('VIEW_PROFILE')} →</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Recent Profiles */}
       <div className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('RECENT_PROFILES')}</h2>
