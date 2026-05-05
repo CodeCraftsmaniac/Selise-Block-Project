@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useGetAllPublishedProfiles } from '../../hooks/use-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { User, Globe, Users } from 'lucide-react';
+import { User, Globe, Users, BarChart3 } from 'lucide-react';
 
 export function AdminPage() {
   const { t } = useTranslation();
@@ -10,6 +10,7 @@ export function AdminPage() {
   const profiles = data?.getUserProfiles?.items || [];
   const totalProfiles = profiles.length;
   const publishedProfiles = profiles.filter((p) => p.is_published).length;
+  const totalViews = profiles.reduce((sum, p) => sum + (p.view_count || 0), 0);
 
   if (isLoading) {
     return (
@@ -30,7 +31,7 @@ export function AdminPage() {
       <h1 className="text-2xl font-bold mb-6">{t('ADMIN_DASHBOARD')}</h1>
 
       {/* Stats Cards */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-5 rounded-xl border shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -66,6 +67,18 @@ export function AdminPage() {
             </div>
           </div>
         </div>
+
+        <div className="bg-white p-5 rounded-xl border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">{t('TOTAL_VIEWS')}</p>
+              <p className="text-2xl font-bold">{totalViews}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Profiles Table */}
@@ -87,6 +100,7 @@ export function AdminPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600">{t('USER')}</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">{t('USERNAME')}</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">{t('HEADLINE')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('VIEWS')}</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">{t('STATUS')}</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">{t('THEME')}</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">{t('ACTIONS')}</th>
@@ -114,6 +128,9 @@ export function AdminPage() {
                     <td className="px-4 py-3 text-gray-600">@{profile.username}</td>
                     <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
                       {profile.headline || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {profile.view_count || 0}
                     </td>
                     <td className="px-4 py-3">
                       <span
