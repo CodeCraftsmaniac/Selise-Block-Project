@@ -5,7 +5,7 @@ import { useAuthStore } from '@/state/store/auth';
 import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
-import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User } from 'lucide-react';
+import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User, Printer } from 'lucide-react';
 import { SocialLink, UserCustomSection } from '../../types/profile.types';
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -15,6 +15,18 @@ const platformIcons: Record<string, React.ReactNode> = {
   twitter: <ExternalLink className="w-5 h-5" />,
   youtube: <Youtube className="w-5 h-5" />,
   email: <Mail className="w-5 h-5" />,
+  instagram: <ExternalLink className="w-5 h-5" />,
+  facebook: <ExternalLink className="w-5 h-5" />,
+  tiktok: <ExternalLink className="w-5 h-5" />,
+  discord: <ExternalLink className="w-5 h-5" />,
+  telegram: <ExternalLink className="w-5 h-5" />,
+  whatsapp: <ExternalLink className="w-5 h-5" />,
+  medium: <ExternalLink className="w-5 h-5" />,
+  'dev.to': <ExternalLink className="w-5 h-5" />,
+  behance: <ExternalLink className="w-5 h-5" />,
+  dribbble: <ExternalLink className="w-5 h-5" />,
+  twitch: <ExternalLink className="w-5 h-5" />,
+  spotify: <ExternalLink className="w-5 h-5" />,
 };
 
 export function PublicProfilePage() {
@@ -196,6 +208,17 @@ export function PublicProfilePage() {
                 >
                   <LinkIcon className="w-4 h-4" />
                   {copied ? t('COPIED') : t('COPY_LINK')}
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                    isDark
+                      ? 'bg-white/10 hover:bg-white/20 text-white'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  <Printer className="w-4 h-4" />
+                  {t('PRINT')}
                 </button>
                 {profile.view_count !== undefined && profile.view_count > 0 && (
                   <span

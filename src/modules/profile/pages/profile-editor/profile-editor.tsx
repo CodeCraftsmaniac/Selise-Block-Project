@@ -16,7 +16,26 @@ import { Plus, Trash, Upload, X, ExternalLink } from 'lucide-react';
 import { ProfileCompletionBar } from '../../components/profile-completion-bar/profile-completion-bar';
 import { SocialLink, UserProfile } from '../../types/profile.types';
 
-const PREDEFINED_PLATFORMS = ['LinkedIn', 'GitHub', 'Portfolio', 'Twitter', 'YouTube', 'Email'];
+const PREDEFINED_PLATFORMS = [
+  'LinkedIn',
+  'GitHub',
+  'Portfolio',
+  'Twitter',
+  'YouTube',
+  'Email',
+  'Instagram',
+  'Facebook',
+  'TikTok',
+  'Discord',
+  'Telegram',
+  'WhatsApp',
+  'Medium',
+  'Dev.to',
+  'Behance',
+  'Dribbble',
+  'Twitch',
+  'Spotify',
+];
 
 export function ProfileEditorPage() {
   const { t } = useTranslation();
