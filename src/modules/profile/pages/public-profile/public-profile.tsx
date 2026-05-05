@@ -267,8 +267,11 @@ export function PublicProfilePage() {
 
         {/* Bio */}
         {profile.bio_text && (
-          <div className={`mb-8 whitespace-pre-wrap ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            <p className="text-base leading-relaxed">{profile.bio_text}</p>
+          <div className={`mb-8 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+            <p className="text-base leading-relaxed whitespace-pre-wrap">{profile.bio_text}</p>
+            <p className={`text-xs mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              {Math.max(1, Math.ceil(profile.bio_text.trim().split(/\s+/).filter(Boolean).length / 200))} {t('MIN_READ')}
+            </p>
           </div>
         )}
 

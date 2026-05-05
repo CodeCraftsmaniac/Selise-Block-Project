@@ -292,7 +292,7 @@ export function ProfileEditorPage() {
           <div className="flex items-center justify-between">
             <Label htmlFor="bio_text">{t('BIO')}</Label>
             <span className="text-xs text-gray-400">
-              {(form.bio_text || '').length} / 500
+              {(form.bio_text || '').length} / 500 {t('CHARS')} · {(form.bio_text || '').trim().split(/\s+/).filter(Boolean).length} {t('WORDS')}
             </span>
           </div>
           <Textarea
