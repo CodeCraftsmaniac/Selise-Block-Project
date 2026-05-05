@@ -175,12 +175,23 @@ export function AppearancePage() {
             </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-4 flex items-center gap-3">
             <Button
               onClick={handleSave}
               disabled={updateProfile.isPending || !existingProfile}
             >
               {updateProfile.isPending ? t('SAVING') : t('SAVE_THEME')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedTheme('minimal');
+                setAccentColor('#3b82f6');
+                setFontFamily('sans');
+              }}
+              disabled={updateProfile.isPending || !existingProfile}
+            >
+              {t('RESET_DEFAULTS')}
             </Button>
           </div>
         </div>
