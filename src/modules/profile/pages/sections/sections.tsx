@@ -39,9 +39,10 @@ interface SortableSectionItemProps {
   onEdit: (section: UserCustomSection) => void;
   onDelete: (id: string) => void;
   onToggleVisibility: (section: UserCustomSection) => void;
+  onDuplicate: (section: UserCustomSection) => void;
 }
 
-function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility }: SortableSectionItemProps) {
+function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, onDuplicate }: SortableSectionItemProps) {
   const { t } = useTranslation();
   const {
     attributes,
@@ -98,10 +99,13 @@ function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility }: 
             <EyeOff className="w-4 h-4 text-gray-400" />
           )}
         </button>
-        <button onClick={() => onEdit(section)} className="p-2 hover:bg-gray-100 rounded">
+        <button onClick={() => onEdit(section)} className="p-2 hover:bg-gray-100 rounded" title={t('EDIT')}>
           <Edit className="w-4 h-4 text-gray-500" />
         </button>
-        <button onClick={() => onDelete(section.ItemId)} className="p-2 hover:bg-red-50 rounded">
+        <button onClick={() => onDuplicate(section)} className="p-2 hover:bg-gray-100 rounded" title={t('DUPLICATE')}>
+          <Plus className="w-4 h-4 text-gray-500" />
+        </button>
+        <button onClick={() => onDelete(section.ItemId)} className="p-2 hover:bg-red-50 rounded" title={t('DELETE')}>
           <Trash className="w-4 h-4 text-red-500" />
         </button>
       </div>
@@ -174,6 +178,19 @@ export function SectionsPage() {
     });
     setIsAdding(false);
     setEditingId(null);
+  };
+
+  const handleDuplicate = (section: UserCustomSection) => {
+    createSection.mutate({
+      input: {
+        user_id: userId,
+        section_type: section.section_type,
+        section_title: `${section.section_title || section.section_type} (Copy)`,
+        section_content: section.section_content || '',
+        section_order: items.length,
+        is_visible: section.is_visible,
+      },
+    });
   };
 
   useEffect(() => {
@@ -347,6 +364,7 @@ export function SectionsPage() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggleVisibility={handleToggleVisibility}
+                onDuplicate={handleDuplicate}
               />
             ))}
           </SortableContext>
