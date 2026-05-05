@@ -202,7 +202,7 @@ export function PublicProfilePage() {
                   {profile.headline}
                 </p>
               )}
-              <div className="flex items-center gap-3 mt-3 flex-wrap">
+              <div className="flex items-center gap-3 mt-3 flex-wrap print:hidden">
                 {isOwner && (
                   <span
                     className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium ${
@@ -323,7 +323,7 @@ export function PublicProfilePage() {
 
         {/* Last Updated */}
         {profile.updated_at && (
-          <div className={`text-center text-xs pt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div className={`text-center text-xs pt-4 print:hidden ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t('LAST_UPDATED')}: {formatRelativeTime(profile.updated_at)}
