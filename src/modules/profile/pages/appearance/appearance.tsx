@@ -43,6 +43,7 @@ export function AppearancePage() {
   const [selectedTheme, setSelectedTheme] = useState('minimal');
   const [accentColor, setAccentColor] = useState('#3b82f6');
   const [fontFamily, setFontFamily] = useState('sans');
+  const [previewMobile, setPreviewMobile] = useState(false);
 
   useEffect(() => {
     if (existingProfile?.theme_preference) {
@@ -213,8 +214,30 @@ export function AppearancePage() {
 
         {/* Live Preview */}
         <div>
-          <Label className="text-lg font-semibold mb-4 block">{t('LIVE_PREVIEW')}</Label>
-          <div className="border rounded-xl overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <Label className="text-lg font-semibold">{t('LIVE_PREVIEW')}</Label>
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setPreviewMobile(false)}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  !previewMobile ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                {t('DESKTOP')}
+              </button>
+              <button
+                onClick={() => setPreviewMobile(true)}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  previewMobile ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                {t('MOBILE')}
+              </button>
+            </div>
+          </div>
+          <div className={`border rounded-xl overflow-hidden shadow-sm mx-auto transition-all duration-300 ${
+            previewMobile ? 'max-w-[375px]' : 'max-w-full'
+          }`}>
             {/* Mini browser chrome */}
             <div className="bg-gray-100 px-3 py-2 border-b flex items-center gap-2">
               <div className="flex gap-1.5">
