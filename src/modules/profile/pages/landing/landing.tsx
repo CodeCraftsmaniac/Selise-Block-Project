@@ -155,6 +155,65 @@ export function LandingPage() {
         </div>
       </div>
 
+      {/* Trending Profiles */}
+      <div className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('TRENDING_PROFILES')}</h2>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        ) : profiles?.getUserProfiles?.items ? (
+          (() => {
+            const trending = [...profiles.getUserProfiles.items]
+              .filter((p) => (p.view_count || 0) > 0)
+              .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+              .slice(0, 3);
+            if (trending.length === 0) return null;
+            return (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {trending.map((profile) => (
+                  <Link
+                    key={profile.ItemId}
+                    to={`/u/${profile.username}`}
+                    className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden group"
+                  >
+                    <div className="h-24 bg-gray-200 relative overflow-hidden">
+                      {profile.header_image_url ? (
+                        <img src={profile.header_image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-r from-orange-400 to-red-400" />
+                      )}
+                    </div>
+                    <div className="p-4 relative">
+                      <div className="w-14 h-14 rounded-full border-4 border-white bg-gray-200 overflow-hidden absolute -top-7 left-4 flex items-center justify-center">
+                        {profile.profile_image_url ? (
+                          <img src={profile.profile_image_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-7 h-7 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="mt-6">
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {profile.display_name}
+                        </h3>
+                        <p className="text-sm text-gray-500">@{profile.username}</p>
+                        {profile.headline && (
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{profile.headline}</p>
+                        )}
+                        <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
+                          <Globe className="w-3 h-3" />
+                          {profile.view_count || 0} {t('VIEWS')}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            );
+          })()
+        ) : null}
+      </div>
+
       {/* Recent Profiles */}
       <div className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('RECENT_PROFILES')}</h2>
