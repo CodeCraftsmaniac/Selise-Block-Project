@@ -82,7 +82,12 @@ function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, on
           <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
             {section.section_type}
           </span>
-          <h3 className="font-semibold">{section.section_title || section.section_type}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-gray-900">{section.section_title || section.section_type}</h3>
+            <p className="text-sm text-gray-500">
+              {section.section_type} · {(section.section_content || '').trim().split(/\s+/).filter(Boolean).length} {t('WORDS')}
+            </p>
+          </div>
         </div>
         {section.section_content && (
           <p className="text-sm text-gray-600 line-clamp-2">{section.section_content}</p>
