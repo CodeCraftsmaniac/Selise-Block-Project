@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
-import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink } from 'lucide-react';
+import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3 } from 'lucide-react';
 import { SocialLink, UserCustomSection } from '../../types/profile.types';
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -21,9 +21,28 @@ export function PublicProfilePage() {
   const { username } = useParams<{ username: string }>();
   const { data, isLoading, error } = usePublicProfileByUsername(username || '');
   const profile = data?.getUserProfiles?.items?.[0];
+  const [copied, setCopied] = useState(false);
 
   const { data: sectionsData } = usePublicSectionsByUserId(profile?.user_id || '');
   const sections = sectionsData?.getUserCustomSections?.items || [];
+
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/u/${profile?.username}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   useEffect(() => {
     if (profile) {
@@ -151,6 +170,31 @@ export function PublicProfilePage() {
                   {profile.headline}
                 </p>
               )}
+              <div className="flex items-center gap-3 mt-3">
+                <button
+                  onClick={handleCopyLink}
+                  className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                    copied
+                      ? 'bg-green-100 text-green-700'
+                      : isDark
+                        ? 'bg-white/10 hover:bg-white/20 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  <LinkIcon className="w-4 h-4" />
+                  {copied ? t('COPIED') : t('COPY_LINK')}
+                </button>
+                {profile.view_count !== undefined && profile.view_count > 0 && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg ${
+                      isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    {profile.view_count} {t('VIEWS')}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
