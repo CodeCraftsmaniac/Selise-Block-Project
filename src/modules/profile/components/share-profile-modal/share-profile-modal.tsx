@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from '@/components/ui-kit/dialog';
 import { Input } from '@/components/ui-kit/input';
-import { Share2, Link, Twitter, Linkedin, Facebook, Check } from 'lucide-react';
+import { Share2, Link, Twitter, Linkedin, Facebook, Check, Mail, Download } from 'lucide-react';
 
 interface ShareProfileModalProps {
   username: string;
@@ -49,6 +49,31 @@ export function ShareProfileModal({ username, displayName }: ShareProfileModalPr
 
   const openShare = (url: string) => {
     window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  const handleEmailShare = () => {
+    const subject = encodeURIComponent(`Check out ${displayName}'s profile`);
+    const body = encodeURIComponent(`Hi,\n\nI thought you might be interested in ${displayName}'s profile:\n\n${publicUrl}\n\nBest regards`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const handleDownloadVCard = () => {
+    const vCard = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${displayName}`,
+      `URL:${publicUrl}`,
+      'END:VCARD',
+    ].join('\n');
+    const blob = new Blob([vCard], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${username}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -113,6 +138,29 @@ export function ShareProfileModal({ username, displayName }: ShareProfileModalPr
               >
                 <Facebook className="w-5 h-5 text-blue-600" />
                 <span className="text-xs">Facebook</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* More Actions */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">{t('MORE_ACTIONS')}</label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                onClick={handleEmailShare}
+                className="flex flex-col items-center gap-1.5 h-auto py-3"
+              >
+                <Mail className="w-5 h-5 text-gray-600" />
+                <span className="text-xs">{t('EMAIL')}</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDownloadVCard}
+                className="flex flex-col items-center gap-1.5 h-auto py-3"
+              >
+                <Download className="w-5 h-5 text-gray-600" />
+                <span className="text-xs">{t('VCARD')}</span>
               </Button>
             </div>
           </div>
