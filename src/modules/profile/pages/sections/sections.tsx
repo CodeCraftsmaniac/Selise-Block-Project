@@ -98,6 +98,7 @@ function SortableSectionItem({ section, onEdit, onDelete, onToggleVisibility, on
     >
       <button
         className="mt-1 text-gray-400 cursor-grab active:cursor-grabbing"
+        title={t('DRAG_TO_REORDER')}
         {...attributes}
         {...listeners}
       >
@@ -462,9 +463,14 @@ export function SectionsPage() {
 
       <div className="space-y-3">
         {items.length === 0 && !isAdding && (
-          <div className="text-center py-12 text-gray-500">
-            <p>{t('NO_SECTIONS_YET')}</p>
-            <p className="text-sm mt-1">{t('ADD_FIRST_SECTION')}</p>
+          <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
+            <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium text-gray-700">{t('NO_SECTIONS_YET')}</p>
+            <p className="text-sm mt-1 mb-4">{t('ADD_FIRST_SECTION')}</p>
+            <Button onClick={() => setIsAdding(true)} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              {t('ADD_SECTION')}
+            </Button>
           </div>
         )}
 
