@@ -20,6 +20,8 @@ import {
   useCaptcha,
 } from '@/components/core';
 import { Input } from '@/components/ui-kit/input';
+import { publicGraphqlClient } from '@/lib/public-graphql-client';
+import { GET_PROFILE_BY_USERNAME_QUERY } from '@/modules/profile/graphql/queries';
 
 /**
  * BasePasswordForm Component
@@ -86,6 +88,8 @@ export const BasePasswordForm = ({
   const [requirementsMet, setRequirementsMet] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const { t } = useTranslation();
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameChecking, setUsernameChecking] = useState(false);
 
   const googleSiteKey = import.meta.env.VITE_CAPTCHA_SITE_KEY || '';
   const captchaEnabled = googleSiteKey !== '';
@@ -107,6 +111,44 @@ export const BasePasswordForm = ({
   const confirmPassword = form.watch('confirmPassword');
   const firstName = form.watch('firstName');
   const lastName = form.watch('lastName');
+  const username = form.watch('username');
+
+  useEffect(() => {
+    if (!showNameFields || !username || username.length < 3) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    const isValid = /^[a-z0-9_]+$/.test(username);
+    if (!isValid) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    setUsernameChecking(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await publicGraphqlClient.query<{ getUserProfiles: { items: any[] } }>({
+          query: GET_PROFILE_BY_USERNAME_QUERY,
+          variables: {
+            input: {
+              filter: JSON.stringify({ username }),
+              sort: '{}',
+              pageNo: 1,
+              pageSize: 1,
+            },
+          },
+        });
+        const taken = result?.getUserProfiles?.items?.length > 0;
+        setUsernameAvailable(!taken);
+      } catch {
+        setUsernameAvailable(null);
+      } finally {
+        setUsernameChecking(false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [username, showNameFields]);
 
   useEffect(() => {
     if (
@@ -152,10 +194,10 @@ export const BasePasswordForm = ({
     }
   };
 
-  const nameFieldsValid = !showNameFields || (!!firstName?.trim() && !!lastName?.trim());
+  const nameFieldsValid = !showNameFields || (!!firstName?.trim() && !!lastName?.trim() && !!username?.trim() && usernameAvailable === true);
 
   const isSubmitDisabled =
-    isPending || !requirementsMet || (captchaEnabled && !captchaToken) || !nameFieldsValid;
+    isPending || !requirementsMet || (captchaEnabled && !captchaToken) || !nameFieldsValid || usernameChecking;
 
   return (
     <Form {...form}>
@@ -193,6 +235,35 @@ export const BasePasswordForm = ({
                   <FormControl>
                     <Input placeholder={t('ENTER_YOUR_LAST_NAME')} {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-high-emphasis font-normal">{t('USERNAME')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('CHOOSE_USERNAME')}
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                        setUsernameAvailable(null);
+                      }}
+                    />
+                  </FormControl>
+                  {usernameChecking && (
+                    <p className="text-xs text-medium-emphasis">{t('CHECKING_AVAILABILITY')}</p>
+                  )}
+                  {!usernameChecking && usernameAvailable === true && (
+                    <p className="text-xs text-green-600">{t('USERNAME_AVAILABLE')}</p>
+                  )}
+                  {!usernameChecking && usernameAvailable === false && (
+                    <p className="text-xs text-red-500">{t('USERNAME_TAKEN')}</p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

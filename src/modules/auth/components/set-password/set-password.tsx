@@ -29,12 +29,6 @@ export const SetpasswordForm = ({ code }: Readonly<{ code: string }>) => {
   // Check if captcha is enabled
   const captchaEnabled = (import.meta.env.VITE_CAPTCHA_SITE_KEY || '') !== '';
 
-  const generateUsername = (firstName: string, lastName: string): string => {
-    const base = `${firstName}${lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const suffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `${base}${suffix}`;
-  };
-
   const handleSubmit = async (password: string, code: string, captchaToken?: string, formData?: any) => {
     if (captchaEnabled && !captchaToken) {
       return;
@@ -56,7 +50,7 @@ export const SetpasswordForm = ({ code }: Readonly<{ code: string }>) => {
         const firstName = formData?.firstName ?? '';
         const lastName = formData?.lastName ?? '';
         const displayName = `${firstName} ${lastName}`.trim() || 'New User';
-        const username = generateUsername(firstName, lastName);
+        const username = formData?.username?.trim() || `${firstName}${lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '') + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 
         await createUserProfile({
           input: {

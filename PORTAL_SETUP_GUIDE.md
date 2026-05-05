@@ -245,7 +245,119 @@ query {
 
 ---
 
-## Step 8: Environment Variables
+## Step 8: Client Credentials for Public Access
+
+1. Go to **Blocks Cloud > Services > Access Manager > Client Credentials**
+2. Click **"Create Client Credential"**
+3. Name: `public-profile-reader`
+4. Assign role: **`public`**
+5. Copy the **Client ID** and **Client Secret**
+6. Add to `.env`:
+   ```bash
+   VITE_CLIENT_ID=<your-client-id>
+   VITE_CLIENT_SECRET=<your-client-secret>
+   ```
+7. Test: Use the credential to fetch a published profile via GraphQL (no user auth required)
+
+---
+
+## Step 9: Organizations (Multi-Tenancy)
+
+1. Go to **Blocks Cloud > Services > Access Manager > Organizations**
+2. Create default organization: **`universal-profile-engine`**
+3. Ensure all new users are auto-assigned to this organization
+4. Verify: Users in Org A cannot access Org B data (if multi-org is needed)
+
+---
+
+## Step 10: Localization Keys
+
+1. Go to **Blocks Cloud > Services > Localization**
+2. Add language: **English (en)** — primary
+3. (Optional) Add language: **Bengali (bn)**
+
+### Create Module: `auth`
+
+| Key | Value |
+|-----|-------|
+| `auth.login_title` | Sign In |
+| `auth.signup_title` | Create Account |
+| `auth.email_label` | Email |
+| `auth.password_label` | Password |
+| `auth.login_button` | Log In |
+| `auth.signup_button` | Sign Up |
+| `auth.forgot_password` | Forgot Password? |
+| `auth.logout` | Log Out |
+
+### Create Module: `editor`
+
+| Key | Value |
+|-----|-------|
+| `editor.dashboard_title` | My Profile |
+| `editor.display_name_label` | Display Name |
+| `editor.headline_label` | Professional Headline |
+| `editor.bio_label` | About Me |
+| `editor.profile_image_label` | Profile Picture |
+| `editor.header_image_label` | Header Image |
+| `editor.social_links_label` | Social Links |
+| `editor.add_link_button` | Add Link |
+| `editor.save_button` | Save |
+| `editor.publish_button` | Publish |
+| `editor.unpublish_button` | Unpublish |
+| `editor.preview_button` | Preview |
+| `editor.saved_toast` | Profile saved! |
+| `editor.published_toast` | Profile is now live! |
+
+### Create Module: `public`
+
+| Key | Value |
+|-----|-------|
+| `public.view_profile` | View Profile |
+| `public.connect_with_me` | Connect with me |
+| `public.about_section` | About |
+| `public.not_found` | Profile not found |
+
+### Create Module: `common`
+
+| Key | Value |
+|-----|-------|
+| `common.app_name` | Universal Profile Engine |
+| `common.loading` | Loading... |
+| `common.error` | Something went wrong |
+| `common.save` | Save |
+| `common.cancel` | Cancel |
+| `common.delete` | Delete |
+
+### Profile-specific Keys (add to `editor` or `common` module)
+
+| Key | Value |
+|-----|-------|
+| `USERNAME_MIN_3` | Username must be at least 3 characters |
+| `USERNAME_MAX_30` | Username must be at most 30 characters |
+| `USERNAME_ALPHANUMERIC` | Only lowercase letters, numbers, and underscores |
+| `USERNAME` | Username |
+| `CHOOSE_USERNAME` | Choose a username |
+| `CHECKING_AVAILABILITY` | Checking availability... |
+| `USERNAME_AVAILABLE` | Username is available |
+| `USERNAME_TAKEN` | Username is already taken |
+
+---
+
+## Step 11: Activation & Recovery Links
+
+1. Verify **activation link** flow:
+   - Invite a user via Blocks Cloud > User Management
+   - Check email for activation link
+   - Click link → set password + name + username → account activated
+2. Verify **recovery link** flow:
+   - Go to `/forgot-password` in the app
+   - Enter email → check email for reset link
+   - Click link → set new password → login works
+3. (Optional) Customize email templates in Blocks Cloud
+
+---
+
+## Step 12: Environment Variables
 
 1. Copy `.env.example` to `.env`
 2. Fill in your Blocks Cloud credentials:
@@ -255,11 +367,13 @@ VITE_API_BASE_URL=https://your-api-domain.seliseblocks.com
 VITE_X_BLOCKS_KEY=your_actual_project_key
 VITE_PROJECT_SLUG=your_project_slug
 VITE_APP_DOMAIN=https://your-app.seliseblocks.com
+VITE_CLIENT_ID=<public-client-id>
+VITE_CLIENT_SECRET=<public-client-secret>
 ```
 
 ---
 
-## Step 9: Deploy the Application
+## Step 13: Deploy the Application
 
 ### Option A: Git-based Deployment
 
@@ -277,7 +391,7 @@ VITE_APP_DOMAIN=https://your-app.seliseblocks.com
 
 ---
 
-## Step 10: Post-Deployment Verification
+## Step 14: Post-Deployment Verification
 
 | Test | Expected Result |
 |------|----------------|

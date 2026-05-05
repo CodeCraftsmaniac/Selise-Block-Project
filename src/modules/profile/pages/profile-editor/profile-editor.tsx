@@ -12,7 +12,7 @@ import { Input } from '@/components/ui-kit/input';
 import { Label } from '@/components/ui-kit/label';
 import { Textarea } from '@/components/ui-kit/textarea';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { Plus, Trash, Upload, X, ExternalLink, Keyboard } from 'lucide-react';
+import { Plus, Trash, Upload, X, ExternalLink, Keyboard, Sparkles } from 'lucide-react';
 import { ProfileCompletionBar } from '../../components/profile-completion-bar/profile-completion-bar';
 import { SocialLink, UserProfile } from '../../types/profile.types';
 
@@ -62,6 +62,50 @@ export function ProfileEditorPage() {
 
   const [newLink, setNewLink] = useState<SocialLink>({ platform: '', url: '', label: '' });
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [aiSuggesting, setAiSuggesting] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+
+  const handleAiSuggestBio = async () => {
+    setAiSuggesting(true);
+    setAiSuggestion(null);
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const projectKey = import.meta.env.VITE_X_BLOCKS_KEY || '';
+      const projectSlug = import.meta.env.VITE_PROJECT_SLUG || '';
+      const slugPath = projectSlug ? `/${projectSlug}` : '';
+      const aiUrl = `${baseUrl}/ai/v1${slugPath}/agent/chat`;
+
+      const prompt = `Write a professional bio for a profile page. Name: ${form.display_name || 'User'}. Headline: ${form.headline || 'Professional'}. Keep it under 200 words, first person, engaging and professional. Return only the bio text.`;
+
+      const res = await fetch(aiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-blocks-key': projectKey,
+        },
+        body: JSON.stringify({ message: prompt }),
+      });
+
+      const data = await res.json();
+      const suggestion = data?.response || data?.message || data?.data?.response || null;
+      if (suggestion) {
+        setAiSuggestion(suggestion);
+      } else {
+        setAiSuggestion(t('AI_SUGGESTION_UNAVAILABLE'));
+      }
+    } catch {
+      setAiSuggestion(t('AI_SUGGESTION_UNAVAILABLE'));
+    } finally {
+      setAiSuggesting(false);
+    }
+  };
+
+  const handleAcceptAiSuggestion = () => {
+    if (aiSuggestion && aiSuggestion !== t('AI_SUGGESTION_UNAVAILABLE')) {
+      handleChange('bio_text', aiSuggestion.slice(0, 500));
+    }
+    setAiSuggestion(null);
+  };
 
   useEffect(() => {
     if (existingProfile) {
@@ -311,9 +355,22 @@ export function ProfileEditorPage() {
         <div>
           <div className="flex items-center justify-between">
             <Label htmlFor="bio_text">{t('BIO')}</Label>
-            <span className="text-xs text-gray-400">
-              {(form.bio_text || '').length} / 500 {t('CHARS')} · {(form.bio_text || '').trim().split(/\s+/).filter(Boolean).length} {t('WORDS')}
-            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAiSuggestBio}
+                disabled={aiSuggesting}
+                className="gap-1.5 text-purple-600 border-purple-300 hover:bg-purple-50"
+              >
+                <Sparkles className="w-4 h-4" />
+                {aiSuggesting ? t('GENERATING') : t('AI_SUGGEST_BIO')}
+              </Button>
+              <span className="text-xs text-gray-400">
+                {(form.bio_text || '').length} / 500 {t('CHARS')} · {(form.bio_text || '').trim().split(/\s+/).filter(Boolean).length} {t('WORDS')}
+              </span>
+            </div>
           </div>
           <Textarea
             id="bio_text"
@@ -325,6 +382,20 @@ export function ProfileEditorPage() {
             placeholder={t('BIO_PLACEHOLDER')}
             rows={5}
           />
+          {aiSuggestion && (
+            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <p className="text-xs font-medium text-purple-700 mb-1">{t('AI_SUGGESTION')}</p>
+              <p className="text-sm text-gray-700">{aiSuggestion}</p>
+              <div className="flex gap-2 mt-2">
+                <Button type="button" size="sm" onClick={handleAcceptAiSuggestion}>
+                  {t('ACCEPT')}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setAiSuggestion(null)}>
+                  {t('DISMISS')}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Profile Image */}

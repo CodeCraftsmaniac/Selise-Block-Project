@@ -24,6 +24,11 @@ export const getSetPasswordFormValidationSchema = (t: (key: string) => string) =
     z.object({
       firstName: z.string().min(1, { message: t('REQUIRED_FIELD') }),
       lastName: z.string().min(1, { message: t('REQUIRED_FIELD') }),
+      username: z
+        .string()
+        .min(3, { message: t('USERNAME_MIN_3') })
+        .max(30, { message: t('USERNAME_MAX_30') })
+        .regex(/^[a-z0-9_]+$/, { message: t('USERNAME_ALPHANUMERIC') }),
     }),
     createPasswordValidationSchema(t)
   );
@@ -32,4 +37,5 @@ export const setPasswordFormDefaultValue = {
   ...passwordFormDefaultValues,
   firstName: '',
   lastName: '',
+  username: '',
 };
