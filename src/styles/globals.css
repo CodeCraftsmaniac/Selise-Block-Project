@@ -373,3 +373,50 @@ html.dark {
 .ql-container {
   @apply rounded-b-md border border-gray-200;
 }
+
+/* ==========================================================================
+   Public profile theme CSS contracts
+   --------------------------------------------------------------------------
+   These classes are applied to :root (via document.documentElement) by the
+   public profile renderer to expose CSS custom properties consumed by the
+   public profile layout/components. They are intentionally namespaced with
+   `theme-*` and `font-*` so they do NOT collide with the dashboard's
+   existing `.light` / `.dark` theme classes above.
+   See: design.md §Theme System (CSS contract)
+   ========================================================================== */
+
+:root.theme-minimal {
+  --bg-hero: #ffffff;
+  --text-primary: #0f172a;
+}
+
+:root.theme-bold {
+  --bg-hero: var(--accent, #3b82f6);
+  --text-primary: #ffffff;
+}
+
+:root.theme-dark {
+  --bg-hero: #0a0a0a;
+  --text-primary: #f8fafc;
+}
+
+:root.theme-gradient {
+  --bg-hero: linear-gradient(135deg, var(--accent, #3b82f6), #a855f7);
+  --text-primary: #ffffff;
+}
+
+:root.font-sans {
+  --font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+:root.font-serif {
+  --font-family: ui-serif, Georgia, Cambria, serif;
+}
+
+:root.font-mono {
+  --font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  font-family: var(--font-family, inherit);
+}

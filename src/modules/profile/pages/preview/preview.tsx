@@ -1,11 +1,32 @@
-import { useAuthStore } from '@/state/store/auth';
-import { useGetProfileByUserId } from '../../hooks/use-profile';
+import { useGetMyProfile, useGetMySections } from '../../hooks/use-profile';
 import { usePublishProfile, useUnpublishProfile } from '../../hooks/use-profile';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { Button } from '@/components/ui-kit/button';
 import { Skeleton } from '@/components/ui-kit/skeleton';
-import { ExternalLink, Globe, Eye, EyeOff, QrCode, BarChart3, Printer, Clock, Download, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { ThemeProvider } from '@/styles/theme/theme-provider';
+import type { ThemeOverrides } from '@/styles/theme/theme-provider';
+import {
+  ExternalLink,
+  Globe,
+  Github,
+  Linkedin,
+  Youtube,
+  Mail,
+  Eye,
+  EyeOff,
+  QrCode,
+  BarChart3,
+  Printer,
+  Clock,
+  Download,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
+} from 'lucide-react';
 import { ShareProfileModal } from '../../components/share-profile-modal/share-profile-modal';
+import type { SocialLink, UserCustomSection } from '../../types/profile.types';
 
 function formatRelativeTime(dateString: string | undefined): string {
   if (!dateString) return '';
@@ -23,13 +44,55 @@ function formatRelativeTime(dateString: string | undefined): string {
   return date.toLocaleDateString();
 }
 
+// Mirror of the platform icon map used by `PublicProfilePage` so the preview
+// renders an identical visual for each social link.
+const platformIcons: Record<string, React.ReactNode> = {
+  linkedin: <Linkedin className="w-5 h-5" />,
+  github: <Github className="w-5 h-5" />,
+  portfolio: <Globe className="w-5 h-5" />,
+  twitter: <ExternalLink className="w-5 h-5" />,
+  youtube: <Youtube className="w-5 h-5" />,
+  email: <Mail className="w-5 h-5" />,
+  instagram: <ExternalLink className="w-5 h-5" />,
+  facebook: <ExternalLink className="w-5 h-5" />,
+  tiktok: <ExternalLink className="w-5 h-5" />,
+  discord: <ExternalLink className="w-5 h-5" />,
+  telegram: <ExternalLink className="w-5 h-5" />,
+  whatsapp: <ExternalLink className="w-5 h-5" />,
+  medium: <ExternalLink className="w-5 h-5" />,
+  'dev.to': <ExternalLink className="w-5 h-5" />,
+  behance: <ExternalLink className="w-5 h-5" />,
+  dribbble: <ExternalLink className="w-5 h-5" />,
+  twitch: <ExternalLink className="w-5 h-5" />,
+  spotify: <ExternalLink className="w-5 h-5" />,
+};
+
+/**
+ * PreviewPage
+ *
+ * Live preview of the authenticated user's profile (design §Algorithmic
+ * Pseudocode — `renderPublicProfile`). The inner preview tree mirrors the
+ * same hero / bio / social links / custom sections layout rendered by
+ * `PublicProfilePage`, wrapped in a `<ThemeProvider overrides={...}>` so
+ * the `theme_preference`, `accent_color`, and `font_family` overrides from
+ * the authenticated profile apply exactly the way they do on `/u/:username`.
+ *
+ * Key differences from the public route:
+ * - Data is sourced from the authenticated GraphQL client via
+ *   `useGetMyProfile` / `useGetMySections`. No public client is used.
+ * - Unpublished profiles still render so the owner can preview before going
+ *   live (no redirect to `NotFoundPage`).
+ * - Dashboard-only polish (copy link, share modal, QR card, publish toggle,
+ *   export JSON, getting-started checklist) surrounds the preview tree.
+ */
 export function PreviewPage() {
   const { t } = useTranslation();
-  const user = useAuthStore((state) => state.user);
-  const userId = user?.itemId || '';
 
-  const { data, isLoading } = useGetProfileByUserId(userId);
+  const { data, isLoading } = useGetMyProfile();
   const profile = data?.getUserProfiles?.items?.[0];
+
+  const { data: sectionsData } = useGetMySections();
+  const sections: UserCustomSection[] = sectionsData?.getUserCustomSections?.items ?? [];
 
   const publishProfile = usePublishProfile();
   const unpublishProfile = useUnpublishProfile();
@@ -38,10 +101,13 @@ export function PreviewPage() {
 
   const handlePublishToggle = () => {
     if (!profile) return;
+    // Service contract: filter is a stringified Mongo-style filter. Matches
+    // design §Key GraphQL Operations (publish/unpublish).
+    const filter = JSON.stringify({ ItemId: profile.ItemId });
     if (profile.is_published) {
-      unpublishProfile.mutate(profile.ItemId);
+      unpublishProfile.mutate(filter);
     } else {
-      publishProfile.mutate(profile.ItemId);
+      publishProfile.mutate(filter);
     }
   };
 
@@ -58,7 +124,7 @@ export function PreviewPage() {
 
   const handleDownloadJSON = () => {
     if (!profile) return;
-    const data = {
+    const payload = {
       display_name: profile.display_name,
       username: profile.username,
       headline: profile.headline,
@@ -68,7 +134,7 @@ export function PreviewPage() {
       accent_color: profile.accent_color,
       font_family: profile.font_family,
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -87,6 +153,41 @@ export function PreviewPage() {
       </div>
     );
   }
+
+  // Derive render-only theme values with the same defaults used by
+  // `PublicProfilePage`. The ThemeProvider overrides wrapper applies the
+  // `theme-*` / `font-*` classes to `<html>` so CSS contracts in
+  // globals.css take effect; these local Tailwind classes continue to
+  // provide a visual fallback for the Tailwind-only surface area.
+  const theme = profile?.theme_preference || 'minimal';
+  const accentColor = profile?.accent_color || '#3b82f6';
+  const fontFamily = profile?.font_family || 'sans';
+
+  const themeStyles: Record<string, string> = {
+    minimal: 'bg-white text-gray-900',
+    bold: 'bg-gradient-to-br from-blue-600 to-purple-600 text-white',
+    dark: 'bg-gray-900 text-gray-100',
+    gradient: 'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white',
+  };
+
+  const isDark = theme === 'dark' || theme === 'bold' || theme === 'gradient';
+  const fontClass =
+    fontFamily === 'serif' ? 'font-serif' : fontFamily === 'mono' ? 'font-mono' : 'font-sans';
+
+  // Narrow the string-typed profile fields to the ThemeProvider enum contract.
+  const themeOverrides: ThemeOverrides | undefined = profile
+    ? {
+        theme_preference: profile.theme_preference as ThemeOverrides['theme_preference'],
+        accent_color: profile.accent_color,
+        font_family: profile.font_family as ThemeOverrides['font_family'],
+      }
+    : undefined;
+
+  // Defense-in-depth filter on visibility, sorted ascending by section_order.
+  // Matches `PublicProfilePage` so the preview is a true mirror.
+  const visibleSections = [...sections]
+    .filter((s) => s.is_visible !== false)
+    .sort((a, b) => (a.section_order || 0) - (b.section_order || 0));
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -124,27 +225,31 @@ export function PreviewPage() {
           {profile?.is_published && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-sm text-gray-600">
               <BarChart3 className="w-4 h-4" />
-              <span>{profile.view_count || 0} {t('VIEWS')}</span>
+              <span>
+                {profile.view_count || 0} {t('VIEWS')}
+              </span>
             </div>
           )}
-          <Button
-            variant={profile?.is_published ? 'outline' : 'default'}
-            size="sm"
-            onClick={handlePublishToggle}
-            disabled={publishProfile.isPending || unpublishProfile.isPending}
-          >
-            {profile?.is_published ? (
-              <>
-                <EyeOff className="w-4 h-4 mr-2" />
-                {t('UNPUBLISH')}
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                {t('PUBLISH')}
-              </>
-            )}
-          </Button>
+          {profile && (
+            <Button
+              variant={profile.is_published ? 'outline' : 'default'}
+              size="sm"
+              onClick={handlePublishToggle}
+              disabled={publishProfile.isPending || unpublishProfile.isPending}
+            >
+              {profile.is_published ? (
+                <>
+                  <EyeOff className="w-4 h-4 mr-2" />
+                  {t('UNPUBLISH')}
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 mr-2" />
+                  {t('PUBLISH')}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -168,48 +273,139 @@ export function PreviewPage() {
               <span className="text-sm text-gray-500 ml-2">{t('LIVE_PREVIEW')}</span>
             </div>
 
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-400">
-                  {profile.profile_image_url ? (
+            {/*
+              Owner preview wraps the same markup used on /u/:username inside
+              a <ThemeProvider overrides={...}> so classes and --accent are
+              applied to <html> exactly as they would be on the public route.
+              Overrides are scoped: unmount restores the prior class list.
+            */}
+            <ThemeProvider overrides={themeOverrides}>
+              <div className={`${themeStyles[theme] || themeStyles.minimal} ${fontClass}`}>
+                {/* Header image */}
+                <div className="w-full h-48 md:h-64 overflow-hidden relative">
+                  {profile.header_image_url ? (
                     <img
-                      src={profile.profile_image_url}
+                      src={profile.header_image_url}
                       alt=""
-                      className="w-full h-full rounded-full object-cover"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    profile.display_name?.charAt(0)?.toUpperCase() || '?'
+                    <div className={`w-full h-full ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
                   )}
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">{profile.display_name}</h2>
-                  {profile.headline && <p className="text-gray-600">{profile.headline}</p>}
+
+                <div className="px-6 pb-8">
+                  {/* Profile hero */}
+                  <div className="relative -mt-16 mb-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
+                      <div
+                        className="w-28 h-28 rounded-full border-4 bg-gray-200 overflow-hidden flex-shrink-0 shadow-lg"
+                        style={{ borderColor: accentColor }}
+                      >
+                        {profile.profile_image_url ? (
+                          <img
+                            src={profile.profile_image_url}
+                            alt={profile.display_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-gray-400">
+                            {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 pt-2 md:pt-0">
+                        <h2 className="text-2xl md:text-3xl font-bold">
+                          {profile.display_name}
+                        </h2>
+                        {profile.headline && (
+                          <p
+                            className={`text-base mt-1 ${
+                              isDark ? 'text-gray-200' : 'text-gray-600'
+                            }`}
+                          >
+                            {profile.headline}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* About / bio — rendered through react-markdown + rehype-sanitize
+                      (design §Security Considerations — XSS in bio/sections). */}
+                  {profile.bio_text && (
+                    <div className={`mb-6 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <h3 className="font-semibold text-sm uppercase mb-2 opacity-80">
+                        {t('ABOUT')}
+                      </h3>
+                      <div className="prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 dark:prose-invert">
+                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                          {profile.bio_text}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Social links */}
+                  {profile.social_links && profile.social_links.length > 0 && (
+                    <div className="mb-6">
+                      <h3
+                        className={`text-base font-semibold mb-3 ${
+                          isDark ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        {t('CONNECT')}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.social_links.map((link: SocialLink, index: number) => (
+                          <a
+                            key={index}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-white text-sm"
+                            style={{ backgroundColor: accentColor }}
+                          >
+                            {platformIcons[link.platform.toLowerCase()] || (
+                              <Globe className="w-4 h-4" />
+                            )}
+                            <span>{link.label || link.platform}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom sections — section_content is Markdown, sanitized. */}
+                  {visibleSections.length > 0 && (
+                    <div className="space-y-6">
+                      {visibleSections.map((section) => (
+                        <div key={section.ItemId}>
+                          <h3
+                            className={`text-lg font-semibold mb-2 ${
+                              isDark ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {section.section_title || section.section_type}
+                          </h3>
+                          {section.section_content && (
+                            <div
+                              className={`prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 ${
+                                isDark ? 'prose-invert text-gray-200' : 'text-gray-700'
+                              }`}
+                            >
+                              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                                {section.section_content}
+                              </ReactMarkdown>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {profile.bio_text && (
-                <div className="mb-4">
-                  <h3 className="font-semibold text-sm text-gray-500 uppercase mb-1">{t('ABOUT')}</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap">{profile.bio_text}</p>
-                </div>
-              )}
-
-              {profile.social_links && profile.social_links.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-sm text-gray-500 uppercase mb-2">{t('CONNECT')}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.social_links.map((link, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700"
-                      >
-                        {link.platform}: {link.label || link.url}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            </ThemeProvider>
           </div>
 
           {profile.is_published && publicUrl && (
@@ -237,8 +433,8 @@ export function PreviewPage() {
             </div>
           )}
 
-          {/* Getting Started Checklist */}
-          {profile && !profile.is_published && (
+          {/* Getting Started Checklist — shown only before first publish. */}
+          {!profile.is_published && (
             <div className="border rounded-xl p-6 mt-6 bg-blue-50 border-blue-200">
               <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
                 <ArrowRight className="w-5 h-5" />
@@ -251,7 +447,10 @@ export function PreviewPage() {
                   { label: t('ADD_HEADLINE'), done: !!profile.headline },
                   { label: t('ADD_BIO'), done: !!profile.bio_text },
                   { label: t('ADD_PROFILE_IMAGE'), done: !!profile.profile_image_url },
-                  { label: t('ADD_SOCIAL_LINKS'), done: (profile.social_links?.length || 0) > 0 },
+                  {
+                    label: t('ADD_SOCIAL_LINKS'),
+                    done: (profile.social_links?.length || 0) > 0,
+                  },
                   { label: t('CUSTOMIZE_APPEARANCE'), done: !!profile.theme_preference },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2 text-sm">
@@ -260,7 +459,9 @@ export function PreviewPage() {
                     ) : (
                       <Circle className="w-4 h-4 text-blue-400 shrink-0" />
                     )}
-                    <span className={item.done ? 'text-green-800 line-through' : 'text-blue-800'}>
+                    <span
+                      className={item.done ? 'text-green-800 line-through' : 'text-blue-800'}
+                    >
                       {item.label}
                     </span>
                   </div>

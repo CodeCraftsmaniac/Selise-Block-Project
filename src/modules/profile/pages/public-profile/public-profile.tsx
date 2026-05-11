@@ -1,13 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { useAuthStore } from '@/state/store/auth';
-import { usePublicProfileByUsername, usePublicSectionsByUserId } from '../../hooks/use-public-profile';
+import { ThemeProvider } from '@/styles/theme/theme-provider';
+import type { ThemeOverrides } from '@/styles/theme/theme-provider';
+import {
+  usePublicProfileByUsername,
+  usePublicSectionsByUserId,
+} from '../../hooks/use-public-profile';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { NotFoundPage } from '@/modules/error-view';
 import { BackToTop } from '@/components/core/back-to-top/back-to-top';
-import { Globe, Github, Linkedin, Youtube, Mail, ExternalLink, Link as LinkIcon, BarChart3, User, Printer, Clock } from 'lucide-react';
-import { SocialLink, UserCustomSection } from '../../types/profile.types';
+import {
+  Globe,
+  Github,
+  Linkedin,
+  Youtube,
+  Mail,
+  ExternalLink,
+  Link as LinkIcon,
+  BarChart3,
+  User,
+  Printer,
+  Clock,
+} from 'lucide-react';
+import { SocialLink, UserCustomSection, UserProfile } from '../../types/profile.types';
 
 function formatRelativeTime(dateString: string | undefined): string {
   if (!dateString) return '';
@@ -46,120 +65,100 @@ const platformIcons: Record<string, React.ReactNode> = {
   spotify: <ExternalLink className="w-5 h-5" />,
 };
 
-export function PublicProfilePage() {
-  const { t } = useTranslation();
-  const { username } = useParams<{ username: string }>();
-  const { data, isLoading, error } = usePublicProfileByUsername(username || '');
-  const profile = data?.getUserProfiles?.items?.[0];
-  const [copied, setCopied] = useState(false);
-  const currentUser = useAuthStore((state) => state.user);
-  const isOwner = currentUser?.itemId === profile?.user_id;
+/**
+ * SeoHead
+ *
+ * Minimal SEO head component — imperatively updates `<title>` and the
+ * `description` / `og:*` meta tags already present in `index.html`.
+ * Kept inline with the page so it has no side effects outside this route;
+ * restores the default document title on unmount.
+ */
+interface SeoHeadProps {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
 
-  const { data: sectionsData } = usePublicSectionsByUserId(profile?.user_id || '');
-  const sections = sectionsData?.getUserCustomSections?.items || [];
-
-  const handleCopyLink = async () => {
-    const url = `${window.location.origin}/u/${profile?.username}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
+function SeoHead({ title, description, ogImage }: SeoHeadProps) {
   useEffect(() => {
-    if (profile) {
-      document.title = `${profile.display_name} — Universal Profile Engine`;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', profile.headline || profile.bio_text || `${profile.display_name}'s profile`);
-      }
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) {
-        ogTitle.setAttribute('content', profile.display_name);
-      }
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) {
-        ogDesc.setAttribute('content', profile.headline || profile.bio_text || `${profile.display_name}'s profile`);
-      }
-      const ogImage = document.querySelector('meta[property="og:image"]');
-      if (ogImage) {
-        ogImage.setAttribute('content', profile.profile_image_url || '');
-      }
+    const previousTitle = document.title;
+    document.title = `${title} — Universal Profile Engine`;
 
-      // Increment view count (once per 24h per browser)
-      const viewKey = `viewed_${profile.ItemId}`;
-      const lastViewed = localStorage.getItem(viewKey);
-      const now = Date.now();
-      const oneDay = 24 * 60 * 60 * 1000;
-      if (!lastViewed || now - Number(lastViewed) > oneDay) {
-        import('../../services/public-profile.service').then(({ incrementPublicProfileViewCount }) => {
-          incrementPublicProfileViewCount(profile.ItemId, profile.view_count || 0).catch(() => {
-            // Silently fail if RLS blocks public mutation
-          });
-        });
-        localStorage.setItem(viewKey, String(now));
-      }
-    }
-    return () => {
-      document.title = 'Universal Profile Engine';
+    const setMeta = (selector: string, content: string) => {
+      const el = document.querySelector(selector);
+      if (el) el.setAttribute('content', content);
     };
-  }, [profile]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Skeleton className="w-full h-64 rounded-xl mb-8" />
-          <Skeleton className="w-32 h-32 rounded-full -mt-16 ml-8 mb-4" />
-          <Skeleton className="w-64 h-8 mb-2" />
-          <Skeleton className="w-96 h-5 mb-8" />
-          <Skeleton className="w-full h-32 mb-4" />
-        </div>
-      </div>
-    );
-  }
+    const desc = description || `${title}'s profile`;
+    setMeta('meta[name="description"]', desc);
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', desc);
+    setMeta('meta[property="og:image"]', ogImage || '');
 
-  if (error || !profile) {
-    return <NotFoundPage />;
-  }
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [title, description, ogImage]);
 
-  if (!profile.is_published) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Public</h1>
-          <p className="text-gray-500">This profile has not been published yet.</p>
-        </div>
-      </div>
-    );
-  }
+  return null;
+}
 
-  const theme = profile.theme_preference || 'minimal';
+/**
+ * Renders a single profile section's markdown content through
+ * `react-markdown` + `rehype-sanitize`. Any HTML tags in the source are
+ * stripped by the default rehype-sanitize schema — no `dangerouslySetInnerHTML`
+ * is used anywhere in the render path (design §Security Considerations XSS).
+ */
+interface SafeMarkdownProps {
+  children: string;
+  className?: string;
+}
+
+function SafeMarkdown({ children, className }: SafeMarkdownProps) {
+  return (
+    <div className={className}>
+      <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{children}</ReactMarkdown>
+    </div>
+  );
+}
+
+function PublicProfileView({
+  profile,
+  sections,
+  isOwner,
+  copied,
+  onCopyLink,
+}: {
+  profile: UserProfile;
+  sections: UserCustomSection[];
+  isOwner: boolean;
+  copied: boolean;
+  onCopyLink: () => void | Promise<void>;
+}) {
+  const { t } = useTranslation();
   const accentColor = profile.accent_color || '#3b82f6';
-  const fontFamily = profile.font_family || 'sans';
 
-  const themeStyles: Record<string, string> = {
-    minimal: 'bg-white text-gray-900',
-    bold: 'bg-gradient-to-br from-blue-600 to-purple-600 text-white',
-    dark: 'bg-gray-900 text-gray-100',
-    gradient: 'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white',
-  };
-
-  const isDark = theme === 'dark' || theme === 'bold' || theme === 'gradient';
-  const fontClass = fontFamily === 'serif' ? 'font-serif' : fontFamily === 'mono' ? 'font-mono' : 'font-sans';
+  // Defense-in-depth: RLS already hides is_visible=false rows, but filter
+  // client-side too in case the public client returns any such row.
+  const orderedSections = sections
+    .filter((s) => s.is_visible === true)
+    .sort((a, b) => (a.section_order || 0) - (b.section_order || 0));
 
   return (
-    <div className={`min-h-screen ${themeStyles[theme] || themeStyles.minimal} ${fontClass}`}>
+    <div
+      className="min-h-screen"
+      style={{
+        background: 'var(--bg-hero)',
+        color: 'var(--text-primary)',
+        fontFamily: 'var(--font-family)',
+      }}
+    >
+      <SeoHead
+        title={profile.display_name}
+        description={profile.headline || profile.bio_text}
+        ogImage={profile.profile_image_url}
+      />
+
       {/* Header Image */}
       <div className="w-full h-64 md:h-80 overflow-hidden relative">
         {profile.header_image_url ? (
@@ -169,7 +168,10 @@ export function PublicProfilePage() {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className={`w-full h-full ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+          <div
+            className="w-full h-full"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }}
+          />
         )}
       </div>
 
@@ -198,29 +200,23 @@ export function PublicProfilePage() {
             <div className="flex-1 pt-4 md:pt-0">
               <h1 className="text-3xl md:text-4xl font-bold">{profile.display_name}</h1>
               {profile.headline && (
-                <p className={`text-lg mt-1 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}>
-                  {profile.headline}
-                </p>
+                <p className="text-lg mt-1 opacity-80">{profile.headline}</p>
               )}
               <div className="flex items-center gap-3 mt-3 flex-wrap print:hidden">
                 {isOwner && (
                   <span
-                    className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium ${
-                      isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'
-                    }`}
+                    className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium bg-green-100 text-green-700"
                   >
                     <User className="w-4 h-4" />
                     {t('YOUR_PROFILE')}
                   </span>
                 )}
                 <button
-                  onClick={handleCopyLink}
+                  onClick={onCopyLink}
                   className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
                     copied
                       ? 'bg-green-100 text-green-700'
-                      : isDark
-                        ? 'bg-white/10 hover:bg-white/20 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      : 'bg-black/5 hover:bg-black/10'
                   }`}
                 >
                   <LinkIcon className="w-4 h-4" />
@@ -228,11 +224,7 @@ export function PublicProfilePage() {
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                    isDark
-                      ? 'bg-white/10 hover:bg-white/20 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors bg-black/5 hover:bg-black/10"
                 >
                   <Printer className="w-4 h-4" />
                   {t('PRINT')}
@@ -240,22 +232,14 @@ export function PublicProfilePage() {
                 {profile.social_links?.some((l) => l.platform.toLowerCase() === 'email') && (
                   <a
                     href={`mailto:${profile.social_links.find((l) => l.platform.toLowerCase() === 'email')?.url}`}
-                    className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                      isDark
-                        ? 'bg-white/10 hover:bg-white/20 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    }`}
+                    className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors bg-black/5 hover:bg-black/10"
                   >
                     <Mail className="w-4 h-4" />
                     {t('CONTACT_ME')}
                   </a>
                 )}
                 {profile.view_count !== undefined && profile.view_count > 0 && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg ${
-                      isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
+                  <span className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-black/5">
                     <BarChart3 className="w-4 h-4" />
                     {profile.view_count} {t('VIEWS')}
                   </span>
@@ -265,12 +249,20 @@ export function PublicProfilePage() {
           </div>
         </div>
 
-        {/* Bio */}
+        {/* Bio — rendered through react-markdown + rehype-sanitize. */}
         {profile.bio_text && (
-          <div className={`mb-8 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            <p className="text-base leading-relaxed whitespace-pre-wrap">{profile.bio_text}</p>
-            <p className={`text-xs mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-              {Math.max(1, Math.ceil(profile.bio_text.trim().split(/\s+/).filter(Boolean).length / 200))} {t('MIN_READ')}
+          <div className="mb-8">
+            <SafeMarkdown className="text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+              {profile.bio_text}
+            </SafeMarkdown>
+            <p className="text-xs mt-2 opacity-60">
+              {Math.max(
+                1,
+                Math.ceil(
+                  profile.bio_text.trim().split(/\s+/).filter(Boolean).length / 200
+                )
+              )}{' '}
+              {t('MIN_READ')}
             </p>
           </div>
         )}
@@ -278,9 +270,7 @@ export function PublicProfilePage() {
         {/* Social Links */}
         {profile.social_links && profile.social_links.length > 0 && (
           <div className="mb-8">
-            <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {t('CONNECT')}
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">{t('CONNECT')}</h2>
             <div className="flex flex-wrap gap-3">
               {profile.social_links.map((link: SocialLink, index: number) => (
                 <a
@@ -299,34 +289,28 @@ export function PublicProfilePage() {
           </div>
         )}
 
-        {/* Custom Sections */}
-        {sections.length > 0 && (
+        {/* Custom Sections — section_content rendered through
+            react-markdown + rehype-sanitize (design §XSS). */}
+        {orderedSections.length > 0 && (
           <div className="space-y-8">
-            {sections
-              .filter((s: UserCustomSection) => s.is_visible !== false)
-              .sort((a: UserCustomSection, b: UserCustomSection) => (a.section_order || 0) - (b.section_order || 0))
-              .map((section: UserCustomSection) => (
-                <div key={section.ItemId}>
-                  <h2
-                    className={`text-xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    {section.section_title || section.section_type}
-                  </h2>
-                  {section.section_content && (
-                    <div
-                      className={`whitespace-pre-wrap ${isDark ? 'text-gray-200' : 'text-gray-700'}`}
-                    >
-                      {section.section_content}
-                    </div>
-                  )}
-                </div>
-              ))}
+            {orderedSections.map((section: UserCustomSection) => (
+              <div key={section.ItemId}>
+                <h2 className="text-xl font-semibold mb-3">
+                  {section.section_title || section.section_type}
+                </h2>
+                {section.section_content && (
+                  <SafeMarkdown className="prose prose-sm max-w-none dark:prose-invert">
+                    {section.section_content}
+                  </SafeMarkdown>
+                )}
+              </div>
+            ))}
           </div>
         )}
 
         {/* Last Updated */}
         {profile.updated_at && (
-          <div className={`text-center text-xs pt-4 print:hidden ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div className="text-center text-xs pt-4 print:hidden opacity-60">
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t('LAST_UPDATED')}: {formatRelativeTime(profile.updated_at)}
@@ -336,5 +320,95 @@ export function PublicProfilePage() {
       </div>
       <BackToTop />
     </div>
+  );
+}
+
+export function PublicProfilePage() {
+  const { username } = useParams<{ username: string }>();
+  const { data, isLoading, error } = usePublicProfileByUsername(username || '');
+  const profile = data?.getUserProfiles?.items?.[0];
+  const [copied, setCopied] = useState(false);
+  const currentUser = useAuthStore((state) => state.user);
+  const isOwner = currentUser?.itemId === profile?.user_id;
+
+  const { data: sectionsData } = usePublicSectionsByUserId(profile?.user_id || '');
+  const sections: UserCustomSection[] = sectionsData?.getUserCustomSections?.items || [];
+
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/u/${profile?.username}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // Increment view count (once per 24h per browser). RLS may reject the
+  // mutation for unauthenticated viewers; failures are silently swallowed.
+  useEffect(() => {
+    if (!profile) return;
+    const viewKey = `viewed_${profile.ItemId}`;
+    const lastViewed = localStorage.getItem(viewKey);
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    if (!lastViewed || now - Number(lastViewed) > oneDay) {
+      import('../../services/public-profile.service').then(
+        ({ incrementPublicProfileViewCount }) => {
+          incrementPublicProfileViewCount(profile.ItemId, profile.view_count || 0).catch(
+            () => {
+              // Silently fail if RLS blocks public mutation
+            }
+          );
+        }
+      );
+      localStorage.setItem(viewKey, String(now));
+    }
+  }, [profile]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <Skeleton className="w-full h-64 rounded-xl mb-8" />
+          <Skeleton className="w-32 h-32 rounded-full -mt-16 ml-8 mb-4" />
+          <Skeleton className="w-64 h-8 mb-2" />
+          <Skeleton className="w-96 h-5 mb-8" />
+          <Skeleton className="w-full h-32 mb-4" />
+        </div>
+      </div>
+    );
+  }
+
+  // RLS filters unpublished/nonexistent rows to an empty list. An empty
+  // items[] OR any error from the public query collapses to a 404.
+  if (error || !profile || !profile.is_published) {
+    return <NotFoundPage />;
+  }
+
+  const overrides: ThemeOverrides = {
+    theme_preference: profile.theme_preference as ThemeOverrides['theme_preference'],
+    accent_color: profile.accent_color,
+    font_family: profile.font_family as ThemeOverrides['font_family'],
+  };
+
+  return (
+    <ThemeProvider overrides={overrides}>
+      <PublicProfileView
+        profile={profile}
+        sections={sections}
+        isOwner={isOwner}
+        copied={copied}
+        onCopyLink={handleCopyLink}
+      />
+    </ThemeProvider>
   );
 }

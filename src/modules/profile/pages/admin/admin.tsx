@@ -1,13 +1,31 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useGetAllPublishedProfiles } from '../../hooks/use-profile';
+import {
+  useGetAllPublishedProfiles,
+  useUnpublishProfile,
+} from '../../hooks/use-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
+import { Button } from '@/components/ui-kit/button';
 import { User, Globe, Users, BarChart3 } from 'lucide-react';
+
+const PAGE_SIZE = 100;
 
 export function AdminPage() {
   const { t } = useTranslation();
-  const { data, isLoading } = useGetAllPublishedProfiles(1, 100);
+  const [pageNo, setPageNo] = useState(1);
+  const { data, isLoading } = useGetAllPublishedProfiles(pageNo, PAGE_SIZE);
+  const unpublishProfile = useUnpublishProfile();
   const profiles = data?.getUserProfiles?.items || [];
+  const hasNextPage = profiles.length === PAGE_SIZE;
+
+  const handleUnpublish = (profileId: string, username: string) => {
+    const confirmed = window.confirm(
+      t('CONFIRM_UNPUBLISH', { username, defaultValue: `Unpublish @${username}? The public page at /u/${username} will return 404.` })
+    );
+    if (!confirmed) return;
+    unpublishProfile.mutate(JSON.stringify({ ItemId: profileId }));
+  };
   const totalProfiles = profiles.length;
   const publishedProfiles = profiles.filter((p) => p.is_published).length;
   const totalViews = profiles.reduce((sum, p) => sum + (p.view_count || 0), 0);
@@ -145,18 +163,60 @@ export function AdminPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 capitalize">{profile.theme_preference}</td>
                     <td className="px-4 py-3">
-                      <Link
-                        to={`/u/${profile.username}`}
-                        target="_blank"
-                        className="text-blue-600 hover:text-blue-700 font-medium text-xs"
-                      >
-                        {t('VIEW')}
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          to={`/u/${profile.username}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-700 font-medium text-xs"
+                        >
+                          {t('OPEN', { defaultValue: 'Open' })}
+                        </Link>
+                        {profile.is_published && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 h-auto px-2 py-1 text-xs font-medium"
+                            disabled={unpublishProfile.isPending}
+                            onClick={() => handleUnpublish(profile.ItemId, profile.username)}
+                          >
+                            {t('UNPUBLISH', { defaultValue: 'Unpublish' })}
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {(pageNo > 1 || hasNextPage) && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={pageNo === 1 || isLoading}
+              onClick={() => setPageNo((p) => Math.max(1, p - 1))}
+            >
+              {t('PREVIOUS', { defaultValue: 'Previous' })}
+            </Button>
+            <span className="text-sm text-gray-600">
+              {t('PAGE_N', { n: pageNo, defaultValue: `Page ${pageNo}` })}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!hasNextPage || isLoading}
+              onClick={() => setPageNo((p) => p + 1)}
+            >
+              {t('NEXT', { defaultValue: 'Next' })}
+            </Button>
           </div>
         )}
       </div>

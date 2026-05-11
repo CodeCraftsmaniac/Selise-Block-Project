@@ -25,6 +25,15 @@ module.exports = {
       version: 'detect',
     },
   },
+  overrides: [
+    {
+      files: ['src/**/*.{ts,tsx}'],
+      rules: {
+        'no-console': ['warn', { allow: ['warn', 'error'] }],
+        'no-debugger': 'error',
+      },
+    },
+  ],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',

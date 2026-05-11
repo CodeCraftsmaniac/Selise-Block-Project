@@ -82,4 +82,32 @@ describe('ClientMiddleware', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
+
+  // Task 17.3: dynamic public-route pattern coverage (/u/:username and /sso/:provider/callback)
+  it('renders children for /u/:username on an unauthenticated session (no redirect)', async () => {
+    renderWithRouter(false, '/u/alice');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('protected-content')).toBeInTheDocument();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('redirects to /login for /dashboard/profile on an unauthenticated session', async () => {
+    renderWithRouter(false, '/dashboard/profile');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/login');
+    });
+    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
+  });
+
+  it('renders children for /sso/:provider/callback on an unauthenticated session (no redirect)', async () => {
+    renderWithRouter(false, '/sso/google/callback');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('protected-content')).toBeInTheDocument();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 });

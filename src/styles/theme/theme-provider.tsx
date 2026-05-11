@@ -39,10 +39,30 @@ import { getThemeColors, type HSLColor } from './utils/utils';
 
 type Theme = 'dark' | 'light' | 'system';
 
+/**
+ * Profile-aware theme overrides applied to `/u/:username`.
+ *
+ * When provided, `ThemeProvider` will:
+ * - toggle `theme-minimal | theme-bold | theme-dark | theme-gradient` on `<html>`
+ * - toggle `font-sans | font-serif | font-mono` on `<html>`
+ * - set the inline CSS variable `--accent` only when `accent_color` matches
+ *   `/^#[0-9a-fA-F]{6}$/` (invalid hex is silently ignored)
+ *
+ * The previous class list and `--accent` value are snapshotted on mount and
+ * restored on unmount so the dashboard `light`/`dark`/`system` flow is never
+ * polluted after leaving a public profile route.
+ */
+export type ThemeOverrides = {
+  theme_preference?: 'minimal' | 'bold' | 'dark' | 'gradient';
+  accent_color?: string;
+  font_family?: 'sans' | 'serif' | 'mono';
+};
+
 type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
+  overrides?: ThemeOverrides;
 };
 
 type ThemeProviderState = {
@@ -73,6 +93,7 @@ export function ThemeProvider({
   children,
   defaultTheme = 'light',
   storageKey = 'theme',
+  overrides,
 }: Readonly<ThemeProviderProps>) {
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
@@ -167,6 +188,66 @@ export function ThemeProvider({
 
     root.classList.add(theme);
   }, [theme]);
+
+  /**
+   * Profile-aware theme overrides for `/u/:username`.
+   *
+   * Snapshots the prior `theme-*` / `font-*` classes and `--accent` value on
+   * mount, applies the overrides-derived classes and CSS variable, and
+   * restores the exact prior state on unmount. Intentionally isolated from
+   * the dashboard `light`/`dark`/`system` flow: `localStorage['ui-theme']`
+   * and the dashboard theme state are never mutated here.
+   */
+  const overrideThemePreference = overrides?.theme_preference;
+  const overrideAccentColor = overrides?.accent_color;
+  const overrideFontFamily = overrides?.font_family;
+
+  useEffect(() => {
+    if (!overrides) return;
+
+    const html = window.document.documentElement;
+    const THEME_CLASSES = ['theme-minimal', 'theme-bold', 'theme-dark', 'theme-gradient'];
+    const FONT_CLASSES = ['font-sans', 'font-serif', 'font-mono'];
+
+    // Snapshot prior state so unmount restores exactly what was there before.
+    const previousThemeClasses = THEME_CLASSES.filter((cls) => html.classList.contains(cls));
+    const previousFontClasses = FONT_CLASSES.filter((cls) => html.classList.contains(cls));
+    const previousAccent = html.style.getPropertyValue('--accent');
+
+    // Apply theme preset class (defaults to `theme-minimal`).
+    html.classList.remove(...THEME_CLASSES);
+    html.classList.add(`theme-${overrideThemePreference ?? 'minimal'}`);
+
+    // Apply font-family preset class (defaults to `font-sans`).
+    html.classList.remove(...FONT_CLASSES);
+    html.classList.add(`font-${overrideFontFamily ?? 'sans'}`);
+
+    // Only write `--accent` when the supplied color is a valid `#RRGGBB` hex.
+    // Invalid values are silently ignored per spec.
+    if (overrideAccentColor && /^#[0-9a-fA-F]{6}$/.test(overrideAccentColor)) {
+      html.style.setProperty('--accent', overrideAccentColor);
+    }
+
+    return () => {
+      html.classList.remove(...THEME_CLASSES);
+      if (previousThemeClasses.length > 0) {
+        html.classList.add(...previousThemeClasses);
+      }
+
+      html.classList.remove(...FONT_CLASSES);
+      if (previousFontClasses.length > 0) {
+        html.classList.add(...previousFontClasses);
+      }
+
+      if (previousAccent) {
+        html.style.setProperty('--accent', previousAccent);
+      } else {
+        html.style.removeProperty('--accent');
+      }
+    };
+    // `overrides` identity may change every render; depend on its fields.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overrideThemePreference, overrideAccentColor, overrideFontFamily]);
 
   const value = useMemo(
     () => ({

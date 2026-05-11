@@ -9,15 +9,29 @@
  *                                followed by route-specific module names
  */
 export const routeModuleMap: Record<string, string[]> = {
+  // Public marketing + discovery
   '/': ['common', 'landing'],
-  '/dashboard': ['common', 'dashboard'],
-  '/dashboard/profile': ['common', 'profile', 'dashboard'],
-  '/dashboard/appearance': ['common', 'profile', 'dashboard'],
-  '/dashboard/sections': ['common', 'profile', 'dashboard'],
-  '/dashboard/preview': ['common', 'profile', 'dashboard'],
-  '/dashboard/admin': ['common', 'profile', 'dashboard'],
-  '/u/:username': ['common', 'profile'],
-  '/browse': ['common', 'profile'],
+  '/browse': ['common', 'browse'],
+
+  // Authentication flows
+  '/login': ['common', 'auth'],
+  '/signup': ['common', 'auth'],
+  '/forgot-password': ['common', 'auth'],
+  '/resetpassword': ['common', 'auth'],
+  '/activate': ['common', 'auth'],
+  '/verify-mfa': ['common', 'auth', 'mfa'],
+
+  // Universal Profile Engine dashboard (editor)
+  '/dashboard/profile': ['common', 'editor'],
+  '/dashboard/appearance': ['common', 'editor', 'themes'],
+  '/dashboard/sections': ['common', 'editor'],
+  '/dashboard/preview': ['common', 'editor', 'viewer'],
+  '/dashboard/admin': ['common', 'editor', 'admin'],
+
+  // Public profile view
+  '/u/:username': ['common', 'viewer'],
+
+  // Non-profile modules (preserved from the Construct scaffold)
   '/finance': ['common', 'finance'],
   '/identity-management': ['common', 'iam'],
   '/inventory': ['common', 'inventory'],
@@ -29,7 +43,8 @@ export const routeModuleMap: Record<string, string[]> = {
   '/chat': ['common', 'chat'],
   '/invoices': ['common', 'invoices'],
   '/file-manager': ['common', 'file-manager'],
-  '/profile': ['common', 'profile', 'mfa'],
+
+  // Error pages
   '/404': ['common', 'error'],
   '/503': ['common', 'error'],
 };

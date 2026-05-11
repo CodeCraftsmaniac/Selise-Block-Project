@@ -72,12 +72,33 @@ interface ClientMiddlewareProps {
   children: ReactNode;
 }
 
+/**
+ * Convert a public route pattern (possibly containing `:param` segments) into a
+ * RegExp that matches a concrete pathname.
+ *
+ * Examples:
+ *   '/u/:username'             -> /^\/u\/[^/]+$/
+ *   '/sso/:provider/callback'  -> /^\/sso\/[^/]+\/callback$/
+ *   '/login'                   -> /^\/login$/
+ */
+const routePatternToRegExp = (pattern: string): RegExp => {
+  // Escape regex metacharacters, then replace the escaped ':param' segments
+  // with a segment wildcard. ':' is not a regex metacharacter so it is left
+  // untouched by the escape step.
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const withWildcards = escaped.replace(/:[^/]+/g, '[^/]+');
+  return new RegExp(`^${withWildcards}$`);
+};
+
+const matchesPublicRoute = (pathname: string): boolean =>
+  publicRoutes.some((pattern) => routePatternToRegExp(pattern).test(pathname));
+
 export const ClientMiddleware: React.FC<ClientMiddlewareProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
   const { isMounted, isAuthenticated } = useAuthState();
-  const isPublicRoute = publicRoutes.includes(currentPath);
+  const isPublicRoute = matchesPublicRoute(currentPath);
 
   // Check if we're processing an SSO callback (has code and state parameters)
   const urlParams = new URLSearchParams(location.search);

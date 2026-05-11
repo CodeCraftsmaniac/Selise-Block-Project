@@ -14,4 +14,6 @@ export const publicRoutes = [
   '/oidc',
   '/u/:username',
   '/browse',
+  '/404',
+  '/503',
 ];

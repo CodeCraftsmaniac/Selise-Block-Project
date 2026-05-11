@@ -3,9 +3,11 @@ import { usePublicPublishedProfiles } from '../../hooks/use-public-profile';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui-kit/skeleton';
 import { BackToTop } from '@/components/core/back-to-top/back-to-top';
-import { Search, User, Globe, Link as LinkIcon, Check } from 'lucide-react';
+import { Search, User, Globe, Link as LinkIcon, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { UserProfile } from '../../types/profile.types';
+
+const PAGE_SIZE = 12;
 
 export function BrowsePage() {
   const { t } = useTranslation();
@@ -13,8 +15,27 @@ export function BrowsePage() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('recent');
-  const { data, isLoading } = usePublicPublishedProfiles(1, 50);
+  const [pageNo, setPageNo] = useState(1);
+
+  const { data, isLoading, isFetching } = usePublicPublishedProfiles(pageNo, PAGE_SIZE);
   const profiles = data?.getUserProfiles?.items || [];
+  const totalCount = data?.getUserProfiles?.totalCount ?? 0;
+
+  // Pagination: prefer response-provided hasNextPage/hasPreviousPage when present,
+  // otherwise fall back to computed values from totalCount / returned item count.
+  const responseAny = data as unknown as {
+    hasNextPage?: boolean;
+    hasPreviousPage?: boolean;
+  } | undefined;
+  const totalPages = totalCount > 0 ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : pageNo;
+  const hasPreviousPage =
+    typeof responseAny?.hasPreviousPage === 'boolean' ? responseAny.hasPreviousPage : pageNo > 1;
+  const hasNextPage =
+    typeof responseAny?.hasNextPage === 'boolean'
+      ? responseAny.hasNextPage
+      : totalCount > 0
+        ? pageNo < totalPages
+        : profiles.length === PAGE_SIZE;
 
   const filtered = profiles
     .filter((p: UserProfile) => {
@@ -30,6 +51,13 @@ export function BrowsePage() {
       if (sortBy === 'name') return (a.display_name || '').localeCompare(b.display_name || '');
       return 0;
     });
+
+  const goPrev = () => {
+    if (hasPreviousPage) setPageNo((p) => Math.max(1, p - 1));
+  };
+  const goNext = () => {
+    if (hasNextPage) setPageNo((p) => p + 1);
+  };
 
   if (isLoading) {
     return (
@@ -160,6 +188,37 @@ export function BrowsePage() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+
+        {/* Pagination controls — hide when there is literally nothing to paginate */}
+        {(profiles.length > 0 || pageNo > 1) && (
+          <div className="mt-10 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={goPrev}
+              disabled={!hasPreviousPage || isFetching}
+              aria-label={t('PAGINATION_PREVIOUS')}
+              className="inline-flex items-center gap-1 px-4 py-2 border rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {t('PAGINATION_PREVIOUS')}
+            </button>
+            <span className="text-sm text-gray-600" aria-live="polite">
+              {totalCount > 0
+                ? t('PAGINATION_PAGE_OF', { page: pageNo, total: totalPages })
+                : t('PAGINATION_PAGE', { page: pageNo })}
+            </span>
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={!hasNextPage || isFetching}
+              aria-label={t('PAGINATION_NEXT')}
+              className="inline-flex items-center gap-1 px-4 py-2 border rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {t('PAGINATION_NEXT')}
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
