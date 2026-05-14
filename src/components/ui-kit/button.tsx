@@ -65,8 +65,21 @@ function Button({
     }
   };
 
+  if (asChild) {
+    return (
+      <Slot
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+        onClick={handleClick}
+      >
+        {children}
+      </Slot>
+    );
+  }
+
   return (
-    <Comp
+    <button
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
@@ -74,7 +87,7 @@ function Button({
     >
       {loading && <LoaderCircle className="animate-spin" />}
       {children}
-    </Comp>
+    </button>
   );
 }
 

@@ -81,20 +81,21 @@ export const AppRoutes = () => {
     <div className="min-h-screen bg-background font-sans antialiased relative">
       <ClientMiddleware>
         <ThemeProvider>
-          <SidebarProvider>
-            <Suspense fallback={<LoadingOverlay />}>
-              <Routes>
-                {AuthRoutes}
-                <Route path="/u/:username" element={<PublicProfilePage />} />
-                <Route path="/browse" element={<BrowsePage />} />
-                <Route path="/" element={<LandingPage />} />
-                <Route
-                  element={
-                    <Guard>
+          <Suspense fallback={<LoadingOverlay />}>
+            <Routes>
+              {AuthRoutes}
+              <Route path="/u/:username" element={<PublicProfilePage />} />
+              <Route path="/browse" element={<BrowsePage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route
+                element={
+                  <Guard>
+                    <SidebarProvider>
                       <MainLayout />
-                    </Guard>
-                  }
-                >
+                    </SidebarProvider>
+                  </Guard>
+                }
+              >
                   <Route path="/dashboard" element={<Navigate to="/dashboard/profile" replace />} />
                   <Route path="/dashboard/profile" element={<ProfileEditorPage />} />
                   <Route path="/dashboard/appearance" element={<AppearancePage />} />
@@ -169,7 +170,6 @@ export const AppRoutes = () => {
                 <Route path="*" element={<Navigate to="/404" />} />
               </Routes>
             </Suspense>
-          </SidebarProvider>
         </ThemeProvider>
       </ClientMiddleware>
       <Toaster />
