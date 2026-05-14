@@ -27,6 +27,13 @@ describe('menuItems', () => {
       name: 'DASHBOARD',
       path: '/dashboard',
       icon: 'LayoutDashboard',
+      children: [
+        { id: 'profile-editor', name: 'PROFILE_EDITOR', path: '/dashboard/profile', icon: 'User' },
+        { id: 'appearance', name: 'APPEARANCE', path: '/dashboard/appearance', icon: 'Palette' },
+        { id: 'sections', name: 'SECTIONS', path: '/dashboard/sections', icon: 'Layers' },
+        { id: 'preview', name: 'PREVIEW', path: '/dashboard/preview', icon: 'Eye' },
+        { id: 'admin', name: 'ADMIN', path: '/dashboard/admin', icon: 'Shield', roles: ['admin'] },
+      ],
     });
     if (dashboardItem) {
       expect(dashboardItem.isIntegrated).toBeUndefined();

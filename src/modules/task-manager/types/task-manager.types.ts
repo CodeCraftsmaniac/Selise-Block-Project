@@ -179,7 +179,9 @@ export interface TaskItemUpdateInput {
   Priority?: TaskPriority;
   Section?: string;
   IsCompleted?: boolean;
+  Language?: string;
   OrganizationIds?: string[];
+  IsDeleted?: boolean;
   Tags?: string[];
 }
 

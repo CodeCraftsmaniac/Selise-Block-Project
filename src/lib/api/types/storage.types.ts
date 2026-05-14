@@ -1,3 +1,5 @@
+import { ModuleName } from '@/constant/modules.constants';
+
 export type GetPreSignedUrlForUploadPayload = {
   itemId?: string;
   metaData?: string;
@@ -8,7 +10,7 @@ export type GetPreSignedUrlForUploadPayload = {
   configurationName?: string;
   projectKey: string;
   additionalProperties?: Record<string, string>;
-  moduleName: string;
+  moduleName: string | ModuleName;
 };
 
 export type GetPreSignedUrlForUploadResponse = {

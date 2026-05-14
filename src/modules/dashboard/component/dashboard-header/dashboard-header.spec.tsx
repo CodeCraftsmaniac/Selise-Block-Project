@@ -6,8 +6,8 @@ import '../../../../lib/utils/test-utils/shared-test-utils';
 
 // Mock UI components
 vi.mock('@/components/ui-kit/button', () => ({
-  Button: ({ children, variant, className, ...props }: any) => (
-    <button data-variant={variant} className={className} {...props}>
+  Button: ({ children, variant, className, size, ...props }: any) => (
+    <button data-variant={variant} data-size={size} className={className} {...props}>
       {children}
     </button>
   ),
@@ -17,6 +17,16 @@ vi.mock('@/components/ui-kit/button', () => ({
 vi.mock('lucide-react', () => ({
   Download: ({ className }: any) => <div data-testid="download-icon" className={className} />,
   RefreshCcw: ({ className }: any) => <div data-testid="refresh-icon" className={className} />,
+  Moon: ({ className }: any) => <div data-testid="moon-icon" className={className} />,
+  Sun: ({ className }: any) => <div data-testid="sun-icon" className={className} />,
+}));
+
+// Mock useTheme
+vi.mock('@/styles/theme/theme-provider', () => ({
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+  }),
 }));
 
 describe('DashboardHeader', () => {
@@ -34,8 +44,8 @@ describe('DashboardHeader', () => {
   test('renders sync button with correct attributes', () => {
     render(<DashboardHeader />);
 
-    // Test sync button exists
-    const syncButton = screen.getByRole('button', { name: /SYNC/i });
+    // Test sync button exists via aria-label
+    const syncButton = screen.getByLabelText('SYNC_DASHBOARD_DATA');
     expect(syncButton).toBeInTheDocument();
 
     // Test button variant and styling
@@ -53,8 +63,8 @@ describe('DashboardHeader', () => {
   test('renders export button with correct attributes', () => {
     render(<DashboardHeader />);
 
-    // Test export button exists
-    const exportButton = screen.getByRole('button', { name: /EXPORT/i });
+    // Test export button exists via aria-label
+    const exportButton = screen.getByLabelText('EXPORT_DASHBOARD_DATA');
     expect(exportButton).toBeInTheDocument();
 
     // Test button styling (default variant)
@@ -106,22 +116,27 @@ describe('DashboardHeader', () => {
     );
 
     // Test buttons container
-    const buttonsContainer = screen.getByRole('button', { name: /SYNC/i }).parentElement;
+    const buttonsContainer = screen.getByLabelText('TOGGLE_THEME').parentElement;
     expect(buttonsContainer).toHaveClass('flex', 'gap-4');
   });
 
-  test('renders both buttons in correct order', () => {
+  test('renders all three buttons in correct order', () => {
     render(<DashboardHeader />);
 
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(3);
 
-    // First button should be sync (outline variant)
+    // First button should be theme toggle (outline variant, size sm)
     expect(buttons[0]).toHaveAttribute('data-variant', 'outline');
-    expect(buttons[0]).toHaveTextContent('SYNC');
+    expect(buttons[0]).toHaveAttribute('data-size', 'sm');
+    expect(buttons[0]).toHaveAttribute('aria-label', 'TOGGLE_THEME');
 
-    // Second button should be export (default variant)
-    expect(buttons[1]).not.toHaveAttribute('data-variant');
-    expect(buttons[1]).toHaveTextContent('EXPORT');
+    // Second button should be sync (outline variant)
+    expect(buttons[1]).toHaveAttribute('data-variant', 'outline');
+    expect(buttons[1]).toHaveTextContent('SYNC');
+
+    // Third button should be export (default variant)
+    expect(buttons[2]).not.toHaveAttribute('data-variant');
+    expect(buttons[2]).toHaveTextContent('EXPORT');
   });
 });
